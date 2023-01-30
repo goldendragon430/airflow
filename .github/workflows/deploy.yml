@@ -2,7 +2,7 @@ name: Upload dags to S3
 
 on:
   push:
-    branches: [develop-new]
+    branches: [develop]
 
 jobs:
   upload-to-s3:
