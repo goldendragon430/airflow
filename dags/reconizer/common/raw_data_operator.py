@@ -17,12 +17,12 @@ def raw_data_path(run_id, dag_id, task_id):
 class RawDataOperator(BaseOperator):
 
     @apply_defaults
-    def __init__(self, *args,  callable: Callable,
+    def __init__(self, *args,  fn: Callable,
                  op_args: Collection[Any] | None = None,
                  op_kwargs: Mapping[str, Any] | None = None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.callable = callable
+        self.callable = fn
         self.op_args = op_args or ()
         self.op_kwargs = op_kwargs or {}
 
