@@ -1,8 +1,8 @@
 from typing import Tuple
 from bbot.scanner.scanner import Scanner
 import requests
+from reconizer.services.ec2_kali_connect import run_command_on_remote_kali
 
-from dags.services.ec2_kali_connect import run_command_on_remote_kali
 
 def scan(domain: str) -> Tuple[list,list]:
     scan_results = []

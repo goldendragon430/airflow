@@ -1,4 +1,4 @@
-from dags.services.bbot_handler import BbotWrapper
+from reconizer.services.bbot_handler import BbotWrapper
 
 
 def sslcert_entrypoint(domain: str) -> dict:

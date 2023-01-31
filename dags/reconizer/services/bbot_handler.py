@@ -1,9 +1,9 @@
 import json
 import subprocess
 import os
+from bbot.scanner.scanner import Scanner
 
-
-SCAN_DEFAULT_NAME= "scan_results"
+SCAN_DEFAULT_NAME = "scan_results"
 
 
 class BbotWrapper:
@@ -22,7 +22,7 @@ class BbotWrapper:
         bbot_module = args[0][0]
         output_format = "json"
         command = ["bbot", "-t", self.domain, "-o", self.directory, "-n", SCAN_DEFAULT_NAME, "-m", bbot_module, "-y",
-                       "--ignore-failed-deps", "-om", output_format]
+                   "--ignore-failed-deps", "-om", output_format]
         if len(args) > 1:
             command += self.add_api_key(bbot_module, args[0][1])
         result = subprocess.run(command, timeout=60)
@@ -49,3 +49,25 @@ class BbotWrapper:
         err, events = self.run_scan_cli(args)
         self.clean_scan_folder()
         return err, events
+
+    def run_scan_python(self, module_name: str, api_key: str = None):
+        config = dict(output_dir=self.directory)
+        if api_key:
+            api_conf = {module_name: {"api_key": api_key}}
+            config.update(modules=api_conf)
+        scan = Scanner(self.domain, modules=[module_name], config=config, output_modules=["json"],
+                       name=SCAN_DEFAULT_NAME)
+        for event in scan.start():
+            print(event)
+        return scan.status
+
+    def check_scan_output(self, status) -> tuple:
+        if status == "failed":
+            return Exception(f'error running scan with status: {status}'), None
+        else:
+            events = []
+            with open(f'{self.directory}/{SCAN_DEFAULT_NAME}/output.json', mode="r") as file:
+                for line in file:
+                    events.append(json.loads(line))
+            self.clean_scan_folder()
+            return None, events
