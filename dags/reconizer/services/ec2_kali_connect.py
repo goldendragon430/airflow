@@ -4,6 +4,7 @@ import paramiko
 from time import time
 from botocore.exceptions import ClientError
 import io
+from bs4 import BeautifulSoup
 
 
 def get_secret(secret_name: str):
@@ -44,8 +45,7 @@ def ssh_connect_with_retry(ssh, ip_address, pem_key, retries):
         ssh_connect_with_retry(ssh, ip_address, pem_key, retries)
 
 
-
-def run_command_on_remote_kali(command: str, secret_name: str) -> Tuple[str, str]:
+def setup_before_connection(secret_name: str):
     # retrieve pem file from secrets manager
     pem_key = get_secret(secret_name)
 
@@ -59,6 +59,11 @@ def run_command_on_remote_kali(command: str, secret_name: str) -> Tuple[str, str
     instance.wait_until_running()
     current_instance = list(ec2.instances.filter(InstanceIds=[instance_id]))
     ip_address = current_instance[0].public_ip_address
+    return ip_address, pem_key
+
+
+def run_command_on_remote_kali(command: str, secret_name: str) -> Tuple[str, str]:
+    ip_address, pem_key = setup_before_connection(secret_name)
 
     # connect and run command
     with paramiko.SSHClient() as ssh:
@@ -66,5 +71,45 @@ def run_command_on_remote_kali(command: str, secret_name: str) -> Tuple[str, str
         ssh_connect_with_retry(ssh, ip_address, pem_key, 0)
         stdin, stdout, stderr = ssh.exec_command(command)
         return stdout.read().decode("utf-8"), stderr.read().decode("utf-8")
-    
-    return None, None
+
+
+def run_scan_on_remote_kali(scan_command: str, secret_name: str) -> None:
+    ip_address, pem_key = setup_before_connection(secret_name)
+
+    # connect and run command
+    with paramiko.SSHClient() as ssh:
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_connect_with_retry(ssh, ip_address, pem_key, 0)
+        ssh.exec_command(scan_command)
+
+
+def read_html_file_in_session(filename: str):
+    with open(filename, "r") as html_file:
+        index = html_file.read()
+        return BeautifulSoup(index, 'lxml')
+
+
+def sftp_scan_results(filepath, secret_name):
+    ip_address, pem_key = setup_before_connection(secret_name)
+
+    # connect and run command
+    with paramiko.SSHClient() as ssh:
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_connect_with_retry(ssh, ip_address, pem_key, 0)
+        ftp_client = ssh.open_sftp()
+        with ftp_client.open(filepath, "r") as html_file:
+            index = html_file.read()
+            result = BeautifulSoup(index, 'lxml')
+        ftp_client.close()
+        return result
+
+
+def clean_scan_results(folder, secret_name):
+    command = f'rm -r {folder}'
+    ip_address, pem_key = setup_before_connection(secret_name)
+
+    # connect and run command
+    with paramiko.SSHClient() as ssh:
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_connect_with_retry(ssh, ip_address, pem_key, 0)
+        ssh.exec_command(command)
