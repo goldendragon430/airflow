@@ -1,3 +1,7 @@
+"""
+    This file contains all modules that would run on Airflow environment without ssh and other connections
+"""
+
 from reconizer.services.bbot_handler import BbotWrapper
 
 

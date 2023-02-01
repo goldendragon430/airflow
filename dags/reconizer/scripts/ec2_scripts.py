@@ -1,3 +1,6 @@
+"""
+    This file contains all modules that would run on Kali EC2 machine in paris
+"""
 from reconizer.services.ec2_kali_connect import KaliMachineConn
 
 
@@ -14,4 +17,3 @@ def harvester_entrypoint(domain: str) -> dict:
     command = f'theHarvester -d {domain} -l 500 -b google'
     std_out, std_err = kali_machine_conn.run_command(command)
     return dict(error=std_err, response=std_out)
-

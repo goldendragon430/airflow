@@ -60,3 +60,24 @@ class TaskValidator:
     def write_output(self, err, response, filename):
         self._s3_client.put_object(Bucket=self._s3_bucket, Key=filename+"/err.txt", Body=err)
         self._s3_client.put_object(Bucket=self._s3_bucket, Key=filename+"/response", Body=response)
+
+
+def get_secret(secret_name: str):
+    region_name = "eu-central-1"
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    return secret
+
