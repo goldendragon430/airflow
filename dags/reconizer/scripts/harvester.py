@@ -1,4 +1,4 @@
-from dags.services.ec2_kali_connect import run_command_on_remote_kali
+from reconizer.services.ec2_kali_connect import run_command_on_remote_kali
 
 
 def harvester_entrypoint(domain: str) -> dict:

@@ -44,7 +44,6 @@ def ssh_connect_with_retry(ssh, ip_address, pem_key, retries):
         ssh_connect_with_retry(ssh, ip_address, pem_key, retries)
 
 
-
 def run_command_on_remote_kali(command: str, secret_name: str) -> Tuple[str, str]:
     # retrieve pem file from secrets manager
     pem_key = get_secret(secret_name)

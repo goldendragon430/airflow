@@ -12,8 +12,3 @@ def sslcert_entrypoint(domain: str) -> dict:
 def extract_info_from_ssl_scan(scan_result: list) -> list:
     list_of_keys = ["type", "data", "resolved_hosts", "module"]
     return [dict(map(lambda key: (key, event.get(key, None)), list_of_keys)) for event in scan_result]
-
-
-d = sslcert_entrypoint("rotter.co.il")
-for k,v in d.items():
-    print(f'{k}: {v}')
