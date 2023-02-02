@@ -11,10 +11,10 @@ from reconizer.scripts.sslcert import sslcert_entrypoint
 def main_dag():
 
     RawDataOperator(task_id="apollo", fn=apollo_entrypoint,
-                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("APOLLO")])
+                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("apollo")])
 
     RawDataOperator(task_id="shodan_dns", fn=shodan_dns_entrypoint,
-                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("SHODAN")])
+                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("shodan_dns")])
 
     RawDataOperator(task_id="sslcert", fn=sslcert_entrypoint, op_args=["www.ynet.co.il"])
 

@@ -7,9 +7,29 @@ SCAN_DEFAULT_NAME = "scan_results"
 
 
 class BbotWrapper:
-    def __init__(self, domain: str):
+
+    @staticmethod
+    def add_api_key(module_name: str, api_key: str) -> list:
+        module_api_key_config = f'modules.{module_name}.api_key={api_key}'
+        return ["-c", module_api_key_config]
+
+    @staticmethod
+    def create_config_from_secrets(secrets: dict):
+        bbot_config = {}
+        for key, value in secrets.items():
+            if "key" in key:
+                continue
+            bbot_config[key] = dict(api_key=value)
+
+        # because aws secrets can't store nested json properly
+        bbot_config["censys"] = dict(api_id= secrets["censys_key"], api_secret=secrets["censys_pass"])
+
+        return dict(modules=bbot_config)
+
+    def __init__(self, domain: str, secrets: dict):
         self.domain = domain
         self.directory = os.getcwd()
+        self.config = self.create_config_from_secrets(secrets)
 
     def run_scan_cli(self, *args) -> tuple:
         """_summary_
@@ -34,10 +54,6 @@ class BbotWrapper:
             return None, events
         else:
             return result.stderr, None
-
-    def add_api_key(self, module_name: str, api_key: str) -> list:
-        module_api_key_config = f'modules.{module_name}.api_key={api_key}'
-        return ["-c", module_api_key_config]
 
     def clean_scan_folder(self) -> None:
         try:

@@ -1,0 +1,250 @@
+modules:
+  vhost:
+    subdomain_wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
+    force_basehost: ''
+  ffuf:
+    wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-small-directories.txt
+    lines: 5000
+    max_depth: 0
+    version: 1.5.0
+    extensions: ''
+  nuclei:
+    version: 2.7.9
+    tags: ''
+    templates: ''
+    severity: ''
+    ratelimit: 150
+    concurrency: 25
+    mode: severe
+    etags: intrusive
+    budget: 1
+  asn: {}
+  affiliates: {}
+  urlscan:
+    urls: false
+  host_header: {}
+  getparam_brute:
+    wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
+  dnsdumpster: {}
+  bevigil:
+    api_key: ''
+    urls: false
+  bucket_aws:
+    max_threads: 10
+    permutations: false
+  fullhunt:
+    api_key: ''
+  pgp:
+    search_urls:
+    - https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=vindex&search=<query>
+    - http://the.earth.li:11371/pks/lookup?fingerprint=on&op=vindex&search=<query>
+  azure_tenant: {}
+  virustotal:
+    api_key: ''
+  shodan_dns:
+    api_key: ''
+  rapiddns: {}
+  dnscommonsrv: {}
+  binaryedge:
+    api_key: ''
+    max_records: 1000
+  passivetotal:
+    username: ''
+    api_key: ''
+  ntlm:
+    max_threads: 10
+    try_all: false
+  generic_ssrf: {}
+  httpx:
+    in_scope_only: true
+    version: 1.2.5
+    max_response_size: 5242880
+  securitytrails:
+    api_key: ''
+  viewdns: {}
+  url_manipulation:
+    allow_redirects: true
+  dnszonetransfer:
+    timeout: 10
+  ffuf_shortnames:
+    wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-large-words.txt
+    lines: 20000
+    max_depth: 1
+    version: 1.5.0
+    extensions: ''
+  builtwith:
+    api_key: ''
+    redirects: true
+  certspotter: {}
+  sslcert:
+    timeout: 5.0
+  cookie_brute:
+    wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
+  hackertarget: {}
+  c99:
+    api_key: ''
+  crt: {}
+  hunt: {}
+  naabu:
+    ports: ''
+    top_ports: 100
+    version: 2.1.1
+  bucket_digitalocean:
+    max_threads: 10
+    permutations: false
+  skymem: {}
+  hunterio:
+    api_key: ''
+  sublist3r: {}
+  massdns:
+    wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
+    max_resolvers: 500
+  wayback:
+    urls: false
+    garbage_threshold: 10
+  ipstack:
+    api_key: ''
+  emailformat: {}
+  bypass403: {}
+  bucket_azure:
+    max_threads: 10
+    permutations: false
+  leakix: {}
+  crobat: {}
+  threatminer: {}
+  telerik:
+    exploit_RAU_crypto: false
+  riddler: {}
+  bucket_gcp:
+    max_threads: 10
+    permutations: false
+  otx: {}
+  gowitness:
+    version: 2.4.2
+    threads: 4
+    timeout: 10
+    resolution_x: 1440
+    resolution_y: 900
+    output_path: ''
+  github:
+    api_key: ''
+  ipneighbor:
+    num_bits: 4
+  iis_shortnames:
+    detect_only: true
+    threads: 8
+  badsecrets: {}
+  censys:
+    api_id: ''
+    api_secret: ''
+    max_records: 1000
+  zoomeye:
+    api_key: ''
+    max_pages: 20
+    include_related: false
+  smuggler: {}
+  header_brute:
+    wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/headers
+  anubisdb: {}
+  wappalyzer: {}
+output_modules:
+  neo4j:
+    uri: bolt://localhost:7687
+    username: neo4j
+    password: bbotislife
+  asset_inventory:
+    output_file: ''
+  human:
+    output_file: ''
+    console: true
+  http:
+    url: ''
+    method: POST
+    bearer: ''
+    username: ''
+    password: ''
+    timeout: 10
+  csv:
+    output_file: ''
+  python: {}
+  json:
+    output_file: ''
+    console: false
+  websocket:
+    url: ''
+    token: ''
+internal_modules:
+  aggregate: {}
+  excavate: {}
+  speculate:
+    max_hosts: 65536
+home: /Users/ryanwright/.bbot
+scope_report_distance: 1
+dns_resolution: true
+max_threads: 25
+max_dns_threads: 100
+scope_search_distance: 1
+scope_dns_search_distance: 2
+dns_resolve_distance: 5
+speculate: true
+excavate: true
+aggregate: true
+http_proxy: null
+http_timeout: 30
+httpx_timeout: 5
+httpx_retries: 1
+http_debug: false
+http_max_redirects: 5
+web_spider_distance: 0
+web_spider_depth: 1
+dns_timeout: 5
+dns_retries: 1
+dns_wildcard_ignore: []
+dns_wildcard_tests: 5
+dns_abort_threshold: 10
+dns_filter_ptrs: true
+dns_debug: false
+ssl_verify: false
+keep_scans: 20
+user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+  like Gecko) Chrome/104.0.5112.79 Safari/537.36
+url_extension_blacklist:
+- png
+- jpg
+- bmp
+- ico
+- jpeg
+- gif
+- svg
+- css
+- woff
+- woff2
+- ttf
+- mp3
+- m4a
+- wav
+- flac
+- mp4
+- mkv
+- avi
+- wmv
+- mov
+- flv
+- webm
+url_extension_httpx_only:
+- js
+omit_event_types:
+- HTTP_RESPONSE
+- URL_UNVERIFIED
+agent_url: ''
+agent_token: ''
+interactsh_server: null
+interactsh_token: null
+interactsh_disable: false
+retry_deps: false
+force_deps: false
+no_deps: false
+ignore_failed_deps: false
+debug: false
+silent: false
+
