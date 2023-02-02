@@ -80,4 +80,3 @@ def get_secret(secret_name: str):
     # Decrypts secret using the associated KMS key.
     secret = get_secret_value_response['SecretString']
     return secret
-

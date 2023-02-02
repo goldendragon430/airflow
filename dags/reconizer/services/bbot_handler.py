@@ -1,6 +1,8 @@
 import json
 import subprocess
 import os
+
+import pandas as pd
 from bbot.scanner.scanner import Scanner
 
 SCAN_DEFAULT_NAME = "scan_results"
@@ -9,27 +11,34 @@ SCAN_DEFAULT_NAME = "scan_results"
 class BbotWrapper:
 
     @staticmethod
+    def parse_json_output(filepath: str) -> dict:
+        events = []
+        with open(filepath, mode="r") as file:
+            for line in file:
+                events.append(json.loads(line))
+        return events
+
+    @staticmethod
     def add_api_key(module_name: str, api_key: str) -> list:
         module_api_key_config = f'modules.{module_name}.api_key={api_key}'
         return ["-c", module_api_key_config]
 
-    @staticmethod
-    def create_config_from_secrets(secrets: dict):
+    def create_config_from_secrets(self, secrets: dict):
         bbot_config = {}
         for key, value in secrets.items():
-            if "key" in key:
+            if "key" in key or "pass" in key:
                 continue
             bbot_config[key] = dict(api_key=value)
 
         # because aws secrets can't store nested json properly
-        bbot_config["censys"] = dict(api_id= secrets["censys_key"], api_secret=secrets["censys_pass"])
-
-        return dict(modules=bbot_config)
+        bbot_config["censys"] = dict(api_id=secrets["censys_key"], api_secret=secrets["censys_pass"])
+        return dict(modules=bbot_config, output_dir=self.directory)
 
     def __init__(self, domain: str, secrets: dict):
         self.domain = domain
         self.directory = os.getcwd()
         self.config = self.create_config_from_secrets(secrets)
+        self.scan_default_name = "scan_results"
 
     def run_scan_cli(self, *args) -> tuple:
         """_summary_
@@ -66,24 +75,23 @@ class BbotWrapper:
         self.clean_scan_folder()
         return err, events
 
-    def run_scan_python(self, module_name: str, api_key: str = None):
-        config = dict(output_dir=self.directory)
-        if api_key:
-            api_conf = {module_name: {"api_key": api_key}}
-            config.update(modules=api_conf)
-        scan = Scanner(self.domain, modules=[module_name], config=config, output_modules=["json"],
-                       name=SCAN_DEFAULT_NAME)
+    def run_scan_python(self, modules_names: list):
+        scan = Scanner(self.domain, modules=modules_names, config=self.config, output_modules=["csv"], name=self.scan_default_name, force_start=True)
         for event in scan.start():
             print(event)
         return scan.status
 
-    def check_scan_output(self, status) -> tuple:
+    def check_scan_output(self, status, output_modules: str):
         if status == "failed":
             return Exception(f'error running scan with status: {status}'), None
         else:
-            events = []
-            with open(f'{self.directory}/{SCAN_DEFAULT_NAME}/output.json', mode="r") as file:
-                for line in file:
-                    events.append(json.loads(line))
-            self.clean_scan_folder()
-            return None, events
+            output_file = f'{self.directory}/{SCAN_DEFAULT_NAME}/output.{output_modules}'
+            if output_modules == "json":
+                result = pd.read_json(output_file)
+            elif output_modules == "csv":
+                result = pd.read_csv(output_file)
+            else:
+                result = None
+
+        self.clean_scan_folder()
+        return result
