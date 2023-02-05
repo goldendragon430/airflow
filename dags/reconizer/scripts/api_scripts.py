@@ -3,16 +3,14 @@
 """
 import requests
 
-url = "https://haveibeenpwned.com/api/v3/breachedaccount/adobe"
-hibp_api_key = "you api goes here"
-payload = {}
-headers = {
-  'hibp-api-key': hibp_api_key,
-  'timeout': '2.5'
-}
 
-response = requests.request("GET", url, headers=headers, data=payload)
-data = response.json()
-for k, v in data.items():
-  print(k)
-  print(v)
+def have_i_been_pawned_entrypoint(domain: str, api_key: str) -> dict:
+    base_url = "https://haveibeenpwned.com/api/v3"
+    breach_url = f'{base_url}/breaches'
+    params = {"domain": domain}
+    headers = {
+        'hibp-api-key': api_key,
+        'timeout': '2.5'
+    }
+    response = requests.get(breach_url, params=params, headers=headers)
+    return response.json() if response.ok else {}
