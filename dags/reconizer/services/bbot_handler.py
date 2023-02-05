@@ -1,7 +1,6 @@
 import json
 import subprocess
 import os
-
 import pandas as pd
 from bbot.scanner.scanner import Scanner
 
@@ -67,7 +66,9 @@ class BbotWrapper:
     def clean_scan_folder(self) -> None:
         try:
             subprocess.run(["rm", "-r", f'{self.directory}/{SCAN_DEFAULT_NAME}'], timeout=5, check=True)
-        except Exception:
+        except subprocess.CalledProcessError as err:
+            pass
+        except OSError as err:
             pass
 
     def activate_scan(self, *args):
@@ -76,7 +77,8 @@ class BbotWrapper:
         return err, events
 
     def run_scan_python(self, modules_names: list):
-        scan = Scanner(self.domain, modules=modules_names, config=self.config, output_modules=["csv"], name=self.scan_default_name, force_start=True)
+        scan = Scanner(self.domain, modules=modules_names, config=self.config, output_modules=["csv"],
+                       name=self.scan_default_name, force_start=True)
         for event in scan.start():
             print(event)
         return scan.status

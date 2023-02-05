@@ -2,10 +2,9 @@ from airflow.models import Variable
 from airflow.decorators import dag, task
 from datetime import datetime
 from reconizer.common.raw_data_operator import RawDataOperator
-from reconizer.scripts.apollo import apollo_entrypoint
 from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint
 from reconizer.scripts.sslcert import sslcert_entrypoint
-from reconizer.scripts.api_scripts import have_i_been_pawned_entrypoint
+from reconizer.scripts.api_scripts import have_i_been_pawned_entrypoint, apollo_entrypoint
 
 
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
