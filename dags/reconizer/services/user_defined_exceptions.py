@@ -12,5 +12,5 @@ class BbotParsingError(Exception):
 
 
 class PartiallyDataError(Exception):
-    "Raised when the input value is less than 18"
+    """Raised when there is an error during script data collection process"""
     pass

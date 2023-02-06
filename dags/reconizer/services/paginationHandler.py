@@ -23,3 +23,29 @@ def post_pagination(url: str, data: dict, field_pagination: str):
                 raise PartiallyDataError(err)
 
         return responses
+
+
+def wrapped_post_request(url: str, api_dict: dict, payload) -> dict:
+    headers = api_dict
+    try:
+        response = requests.post(url=url, headers=headers, data=payload)
+        if response.ok:
+            return response.json()
+    except requests.exceptions.RequestException as err:
+        raise PartiallyDataError(err)
+    else:
+        # response status code is not okay
+        raise PartiallyDataError(response.status_code)
+
+
+def wrapped_get_request(url: str, api_dict: dict) -> dict:
+    headers = api_dict
+    try:
+        response = requests.get(url=url, headers=headers)
+        if response.ok:
+            return response.json()
+    except requests.exceptions.RequestException as err:
+        raise PartiallyDataError(err)
+    else:
+        # response status code is not okay
+        raise PartiallyDataError(response.status_code)
