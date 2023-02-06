@@ -1,3 +1,4 @@
+import json
 from typing import Tuple
 import boto3
 import paramiko
@@ -24,10 +25,14 @@ class KaliMachineConn:
         return ip_address
 
     @staticmethod
-    def read_html_file_in_session(filename: str):
-        with open(filename, "r") as html_file:
+    def read_html_file_in_session(ftp_client, filepath: str):
+        with ftp_client.open(filepath, "r") as html_file:
             index = html_file.read()
             return BeautifulSoup(index, 'lxml')
+    @staticmethod
+    def read_json_file_in_session(ftp_client, filepath: str) -> dict:
+        with ftp_client.open(filepath, mode="r") as file:
+            return json.loads(file.read())
 
     def __init__(self, retries: int, interval: int):
         self.pem_key = get_secret("prod/ec2_kali/ssh")
@@ -70,7 +75,7 @@ class KaliMachineConn:
             self.ssh_connect_with_retry(ssh, ip_address, self.pem_key, 0)
             ssh.exec_command(scan_command)
 
-    def sftp_scan_results(self, filepath: str):
+    def sftp_scan_results(self, filepath: str, mode="json"):
         ip_address = self.setup_before_connection()
 
         # connect and run command
@@ -78,14 +83,26 @@ class KaliMachineConn:
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh_connect_with_retry(ssh, ip_address, self.pem_key, 0)
             ftp_client = ssh.open_sftp()
-            with ftp_client.open(filepath, "r") as html_file:
-                index = html_file.read()
-                result = BeautifulSoup(index, 'lxml')
+            if mode == "html":
+                result = self.read_html_file_in_session(ftp_client, filepath)
+            else:
+                result = self.read_json_file_in_session(ftp_client, filepath)
+
             ftp_client.close()
             return result
 
     def clean_scan_results(self, folder):
         command = f'rm -r {folder}'
+        ip_address = self.setup_before_connection()
+
+        # connect and run command
+        with paramiko.SSHClient() as ssh:
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.ssh_connect_with_retry(ssh, ip_address, self.pem_key, 0)
+            ssh.exec_command(command)
+
+    def clean_file_output(self, filename: str) -> None:
+        command = f'rm {filename}'
         ip_address = self.setup_before_connection()
 
         # connect and run command
