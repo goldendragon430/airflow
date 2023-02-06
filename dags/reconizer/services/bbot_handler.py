@@ -97,3 +97,18 @@ class BbotWrapper:
 
         self.clean_scan_folder()
         return result
+
+
+"""
+secrets = get_secret("airflow/variables/secrets")
+bbot_wrapper = BbotWrapper("www.toysrus.com", json.loads(secrets))
+modules_names = ["httpx", "shodan_dns", "sslcert", "crt", "azure_tenant", "censys", "dnscommonsrv",
+                 "bucket_digitalocean", "bypass403"]
+scan_status = bbot_wrapper.run_scan_python(modules_names)
+result = bbot_wrapper.check_scan_output(scan_status, "csv")
+ex = ReportExtractor(result, modules_names)
+data = ex.extract_by_modules()
+t = ex.get_event_types()
+data_types = ex.extract_by_event_types("OPEN_TCP_PORT")
+
+"""
