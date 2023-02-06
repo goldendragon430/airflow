@@ -2,6 +2,7 @@
     This file contains all modules that would run on Kali EC2 machine in paris
 """
 from reconizer.services.ec2_kali_connect import KaliMachineConn
+from reconizer.scripts.wapiti import extract_vulnerabilites_and_anomalies
 
 
 kali_machine_conn = KaliMachineConn(retries=3, interval=5)
@@ -53,3 +54,27 @@ def wafw00f_entrypoint(domain: str) -> dict:
         return dict(error=None, response=result)
     else:
         return dict(error=std_err, response=None)
+
+
+def ssl_scan_entrypoint(domain: str) -> dict:
+    command = f'sslscan --ocsp --connect-timeout=15 --sleep=75 {domain}'
+    std_out, std_err = kali_machine_conn.run_command(command)
+    if std_err:
+        return dict(error=std_err, response=None)
+    else:
+        return dict(error=None, response=std_out)
+
+
+def wapiti_entrypoint(domain: str) -> dict:
+    filename = "wapiti_report.json"
+    command = f'wapiti -u {domain} -f json -o filename'
+    std_out, std_err = kali_machine_conn.run_command(command)
+    if not std_err:
+        report = kali_machine_conn.sftp_scan_results(filename, mode="json")
+        response = extract_vulnerabilites_and_anomalies(report)
+        output = dict(error=None, response=response)
+    else:
+        output = dict(error=std_err, response=None)
+
+    kali_machine_conn.clean_file_output(filename)
+    return output
