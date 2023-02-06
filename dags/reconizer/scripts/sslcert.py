@@ -1,5 +1,7 @@
 import json
 import os
+import subprocess
+
 from bbot.scanner.scanner import Scanner
 from reconizer.services.user_defined_exceptions import PartiallyDataError
 
@@ -8,9 +10,12 @@ def ssl_cert_entrypoint_internal(domain: str):
     status = run_scan(domain)
     try:
         result = extract_after_status(status)
-        return dict(error=None, response=result)
+        output = dict(error=None, response=result)
     except Exception as err:
-        return dict(error=err, response=None)
+        output = dict(error=err, response=None)
+    finally:
+        subprocess.run(["rm", "-r", "ssl_cert_scan"], timeout=5, check=True)
+    return output
 
 
 def extract_after_status(status: str) -> list:
