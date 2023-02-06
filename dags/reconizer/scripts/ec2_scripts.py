@@ -34,3 +34,22 @@ def skip_fish_entrypoint(domain) -> dict:
     result = kali_machine_conn.sftp_scan_results(output_scan_filepath)
     kali_machine_conn.clean_scan_results(scan_name)
     return dict(error=None, response=result)
+
+
+def wafw00f_entrypoint(domain: str) -> dict:
+    """_summary_
+    Args:
+        domain (str): url or domain
+
+    Returns:
+        dict: error + wafs detected
+    """
+    filename = "wafw00f_output.json"
+    command = f'wafw00f {domain} -v -a -f json -o {filename}'
+    std_out, std_err = kali_machine_conn.run_command(command)
+    if not std_err:
+        result = kali_machine_conn.sftp_scan_results(filename, mode="json")
+        kali_machine_conn.clean_file_output(filename)
+        return dict(error=None, response=result)
+    else:
+        return dict(error=std_err, response=None)
