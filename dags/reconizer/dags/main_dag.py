@@ -4,7 +4,8 @@ from datetime import datetime
 from reconizer.common.raw_data_operator import RawDataOperator
 from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint
 from reconizer.scripts.sslcert import sslcert_entrypoint
-from reconizer.scripts.api_scripts import have_i_been_pawned_entrypoint, apollo_entrypoint, signal_hire_entrypoint
+from reconizer.scripts.api_scripts import have_i_been_pawned_entrypoint, apollo_entrypoint, signal_hire_entrypoint, \
+    view_dns_entrypoint
 from reconizer.scripts.ec2_scripts import wafw00f_entrypoint, skip_fish_entrypoint
 
 
@@ -27,6 +28,9 @@ def main_dag():
     RawDataOperator(task_id="wafw00f", fn=wafw00f_entrypoint, op_args=["www.ynet.co.il"])
 
     RawDataOperator(task_id="skipfish", fn=skip_fish_entrypoint, op_args=["www.ynet.co.il"])
+
+    RawDataOperator(task_id="view_dns", fn=view_dns_entrypoint,
+                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("view_dns")])
 
 
 Dag = main_dag()

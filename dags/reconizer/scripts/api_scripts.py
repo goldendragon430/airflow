@@ -58,3 +58,33 @@ def signal_hire_entrypoint(search_items: List[str], api_key: str) -> dict:
             return dict(error=None, response=result)
         except Exception as err:
             return dict(error=err, response=None)
+
+
+def view_dns_entrypoint(domain: str, api_key: str) -> dict:
+    """_summary_
+    Args:
+        domain (str): url to scan
+        api_key (str): view dns api key
+    """
+    try:
+        port_scan_url = f'https://api.viewdns.info/portscan/?host={domain}&apikey={api_key}&output=json'
+        reverse_ip_url = f'https://api.viewdns.info/reverseip/?host={domain}&apikey={api_key}&output=json'
+        port_scan_response = requests.get(port_scan_url, timeout=30)
+        reverse_ip_response = requests.get(reverse_ip_url, timeout=30)
+        if port_scan_response.ok and reverse_ip_response.ok:
+            port_data = port_scan_response.json()["response"]["port"]
+            reverse_data = reverse_ip_response.json()["response"]["domains"]
+            ports_open = list(filter(lambda port: port["status"] == "open", port_data))
+            ports_closed = list(filter(lambda port: port["status"] != "open", port_data))
+            domain_found = [item["name"] for item in reverse_data]
+            result = dict(ports_open=ports_open, ports_closed=ports_closed, domains=domain_found)
+            return dict(error=None, response=result)
+    except requests.RequestException as err:
+        return dict(error=err, response={})
+    except KeyError as key_error:
+        return dict(error=key_error, response=None)
+    else:
+        # one of the api calls return status code that is not 200x
+        err = {"port_status_code": port_scan_response.status_code,
+               "reverse_ip_status_code": reverse_ip_response.status_code}
+        return dict(error=err, response={})
