@@ -12,7 +12,7 @@ from reconizer.scripts.kali_scripts import wafw00f_entrypoint, skip_fish_entrypo
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
 def main_dag():
 
-    # bbot scripts
+    # BBot scripts
     RawDataOperator(task_id="shodan_dns", fn=shodan_dns_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("shodan_dns")])
 
