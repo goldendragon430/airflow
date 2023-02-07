@@ -6,12 +6,11 @@ from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint, ssl_cert_entry
 from reconizer.scripts.api_scripts import have_i_been_pawned_entrypoint, apollo_entrypoint, signal_hire_entrypoint, \
     view_dns_entrypoint
 from reconizer.scripts.kali_scripts import wafw00f_entrypoint, skip_fish_entrypoint, ssl_scan_entrypoint, \
-    wapiti_entrypoint
+    wapiti_entrypoint, wpscan_entrypoint
 
 
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
 def main_dag():
-
     # BBot scripts
     RawDataOperator(task_id="shodan_dns", fn=shodan_dns_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("shodan_dns")])
@@ -33,6 +32,9 @@ def main_dag():
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("view_dns")])
 
     # Kali scripts
+
+    RawDataOperator(task_id="wpscan", fn=wpscan_entrypoint,
+                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("wp_scan")])
 
     RawDataOperator(task_id="wafw00f", fn=wafw00f_entrypoint, op_args=["www.ynet.co.il"])
 

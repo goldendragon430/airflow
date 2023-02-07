@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from bbot.scanner.scanner import Scanner
 
+
 SCAN_DEFAULT_NAME = "scan_results"
 
 

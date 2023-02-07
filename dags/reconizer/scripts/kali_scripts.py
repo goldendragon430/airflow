@@ -74,10 +74,10 @@ def wapiti_entrypoint(domain: str) -> dict:
 def wpscan_entrypoint(domain: str, api_key: str) -> dict:
     """_summary_
     Args:
+        domain: preferable with https -> i.e https://snoopdogg.com/
         api_key (str): wpscan api token
     """
-    command = f'wpscan --url {domain} --random-user-agent --format json --api-token {api_key}' \
-              f' --ignore-main-redirect --force detection-mode mixed'
+    command = f'wpscan --url {domain} --random-user-agent --format json --api-token {api_key} --detection-mode mixed'
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         data = json.loads(std_out)
@@ -85,8 +85,3 @@ def wpscan_entrypoint(domain: str, api_key: str) -> dict:
         return dict(error=None, response=vulnerabilities)
     else:
         return dict(error=std_err, response=None)
-
-
-d = wpscan_entrypoint("walla.co.il", "0aKpORSMkvP60g34PWXAWk4Ev7iWma4bLkyDvubu8q8")
-print(d.keys())
-print(d.values())

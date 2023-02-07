@@ -1,10 +1,8 @@
 """
-    This file contains all modules that would run on Airflow environment without ssh and other connections
+    This file contains all modules associated with bbot osint tool
 """
-import json
+
 from reconizer.services.bbot_handler import BbotWrapper
-from reconizer.services.services import get_secret
-from reconizer.services.report_extractor import ReportExtractor
 from reconizer.scripts.sslcert import ssl_cert_entrypoint_internal
 
 
