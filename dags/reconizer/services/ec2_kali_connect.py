@@ -66,14 +66,17 @@ class KaliMachineConn:
             stdin, stdout, stderr = ssh.exec_command(command)
             return stdout.read().decode("utf-8"), stderr.read().decode("utf-8")
 
-    def run_scan_on_remote_kali(self, scan_command: str) -> None:
+    def run_scan_on_remote_kali(self, scan_command: str) -> tuple:
         ip_address = self.setup_before_connection()
 
         # connect and run command
         with paramiko.SSHClient() as ssh:
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh_connect_with_retry(ssh, ip_address, self.pem_key, 0)
-            ssh.exec_command(scan_command)
+            stdin, stdout, stderr = ssh.exec_command(scan_command)
+            stdout.channel.set_combine_stderr(True)
+            output = stdout.readlines()
+            return output, stderr
 
     def sftp_scan_results(self, filepath: str, mode="json"):
         ip_address = self.setup_before_connection()

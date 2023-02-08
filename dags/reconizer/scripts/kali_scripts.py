@@ -24,11 +24,14 @@ def skip_fish_entrypoint(domain) -> dict:
     complete_fish_dict_path = "skipfish_dict/complete.wl"
     scan_name = "skip_fish_results"
     command = f'skipfish -o {scan_name} -S {complete_fish_dict_path} -u -k 05:00:00 {domain}'
-    kali_machine_conn.run_scan_on_remote_kali(command)
-    output_scan_filepath = f'{scan_name}/index.html'
-    result = kali_machine_conn.sftp_scan_results(output_scan_filepath)
-    kali_machine_conn.clean_scan_results(scan_name)
-    return dict(error=None, response=result)
+    stdout, std_err = kali_machine_conn.run_scan_on_remote_kali(command)
+    if not std_err:
+        output_scan_filepath = f'{scan_name}/index.html'
+        result = kali_machine_conn.sftp_scan_results(output_scan_filepath, mode="html")
+        kali_machine_conn.clean_scan_results(scan_name)
+        return dict(error=None, response=result)
+    else:
+        return dict(error=std_err, response=None)
 
 
 def wafw00f_entrypoint(domain: str) -> dict:

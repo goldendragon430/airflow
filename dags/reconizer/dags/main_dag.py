@@ -22,8 +22,9 @@ def main_dag():
     RawDataOperator(task_id="haveibeenpawned", fn=have_i_been_pawned_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("haveibeenpawned")])
 
+    search_items = ["https://www.linkedin.com/in/url1", "test@email.com"]
     RawDataOperator(task_id="signalhire", fn=signal_hire_entrypoint,
-                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("signal")])
+                    op_args=[search_items, Variable.get("secrets", deserialize_json=True).get("signal")])
 
     RawDataOperator(task_id="apollo", fn=apollo_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("apollo")])
@@ -34,11 +35,12 @@ def main_dag():
     # Kali scripts
 
     RawDataOperator(task_id="wpscan", fn=wpscan_entrypoint,
-                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("wp_scan")])
+                    op_args=["https://snoopdogg.com/", Variable.get("secrets", deserialize_json=True).get("wp_scan")])
 
     RawDataOperator(task_id="wafw00f", fn=wafw00f_entrypoint, op_args=["www.ynet.co.il"])
 
-    RawDataOperator(task_id="skipfish", fn=skip_fish_entrypoint, op_args=["https://www.ynet.co.il"])
+    # need to fix dict words for skip fish
+    # RawDataOperator(task_id="skipfish", fn=skip_fish_entrypoint, op_args=["https://www.ynet.co.il"])
 
     RawDataOperator(task_id="sslscan", fn=ssl_scan_entrypoint, op_args=["www.ynet.co.il"])
 
