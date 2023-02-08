@@ -1,4 +1,4 @@
---constraint "r_mor_constarints.txt"
+--constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.4.3/constraints-3.10.txt"
 
-wapiti3==3.1.6
-bbot==1.0.4.922
+
+# bbot==1.0.4.922
