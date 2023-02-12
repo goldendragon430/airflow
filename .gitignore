@@ -9,3 +9,5 @@ dags/**/*.pyc
 *__pycache__
 .vscode/*
 !.vscode/settings.json
+/docker/docker-compose-local.yml
+/docker/config/.env.ranlocalrunner

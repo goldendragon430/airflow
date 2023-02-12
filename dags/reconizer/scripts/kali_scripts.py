@@ -3,9 +3,9 @@
 """
 import json
 
+from reconizer.scripts.kali_helpers import wapiti_extract_vulnerabilites_and_anomalies, \
+    wpscan_find_vulnerabilities_from_scan, xsser_xss_xst_by_passer
 from reconizer.services.ec2_kali_connect import KaliMachineConn
-from reconizer.scripts.wapiti import extract_vulnerabilites_and_anomalies
-from reconizer.scripts.wpscan import find_vulnerabilities_in_wpscan_output
 
 kali_machine_conn = KaliMachineConn(retries=3, interval=5)
 
@@ -65,7 +65,7 @@ def wapiti_entrypoint(domain: str) -> dict:
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         report = kali_machine_conn.sftp_scan_results(filename, mode="json")
-        response = extract_vulnerabilites_and_anomalies(report)
+        response = wapiti_extract_vulnerabilites_and_anomalies(report)
         output = dict(error=None, response=response)
     else:
         output = dict(error=std_err, response=None)
@@ -84,7 +84,33 @@ def wpscan_entrypoint(domain: str, api_key: str) -> dict:
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         data = json.loads(std_out)
-        vulnerabilities = find_vulnerabilities_in_wpscan_output(data)
+        vulnerabilities = wpscan_find_vulnerabilities_from_scan(data)
         return dict(error=None, response=vulnerabilities)
     else:
         return dict(error=std_err, response=None)
+
+
+# bbot is more intensive if you just want to run sublist3r simple and fast use sublist3r_entrypoint_light
+def sublist3r_entrypoint_light(domain: str) -> dict:
+    command = f'sublist3r -d {domain}'
+    std_out, std_err = kali_machine_conn.run_command(command)
+    if not std_err:
+        return dict(error=None, response=std_out)
+    else:
+        return dict(error=std_err, response=None)
+
+
+def xsser_entrypoint(domain: str) -> dict:
+    """
+    Args:
+        domain:  must be full like https://your-site.com
+    """
+    by_passers = xsser_xss_xst_by_passer()
+    errors, outputs = [], []
+    for header in by_passers:
+        command = f'xsser -u {domain} -p {header}'
+        std_out, std_err = kali_machine_conn.run_command(command)
+        errors.append(std_err)
+        outputs.append(std_out)
+
+    return dict(error=errors, response=outputs)

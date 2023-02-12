@@ -1,5 +1,0 @@
-{
-    "python.linting.pylintEnabled": false,
-    "python.linting.enabled": false,
-    "python.analysis.autoImportCompletionspython.analysis.autoImportCompletions": true
-}

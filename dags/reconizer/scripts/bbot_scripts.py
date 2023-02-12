@@ -2,8 +2,8 @@
     This file contains all modules associated with bbot osint tool
 """
 
+from reconizer.scripts.bbot_helper import run_scan
 from reconizer.services.bbot_handler import BbotWrapper
-from reconizer.scripts.sslcert import ssl_cert_entrypoint_internal
 
 
 def general_bbot_entrypoint(domain: str, module_name: str, api_key: str) -> tuple[list, list]:
@@ -18,4 +18,9 @@ def shodan_dns_entrypoint(domain: str, api_key: str) -> tuple[list, list]:
 
 
 def ssl_cert_entrypoint(domain: str) -> dict:
-    return ssl_cert_entrypoint_internal(domain)
+    kwargs = dict(modules=["sslcert"], output_modules=["json"])
+    try:
+        result = run_scan(domain, **kwargs)
+        return dict(error=None, response=result)
+    except Exception as err:
+        return dict(error=err, response=None)

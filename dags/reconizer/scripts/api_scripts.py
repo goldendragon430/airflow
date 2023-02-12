@@ -5,8 +5,9 @@ import json
 from typing import List
 
 import requests
+from requests.auth import HTTPBasicAuth
 
-from reconizer.services.paginationHandler import post_pagination, wrapped_post_request, wrapped_get_request
+from reconizer.services.paginationHandler import post_pagination, wrapped_get_request, wrapped_post_request
 from reconizer.services.user_defined_exceptions import PartiallyDataError
 
 
@@ -88,3 +89,28 @@ def view_dns_entrypoint(domain: str, api_key: str) -> dict:
         err = {"port_status_code": port_scan_response.status_code,
                "reverse_ip_status_code": reverse_ip_response.status_code}
         return dict(error=err, response={})
+
+
+def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
+    """_summary_
+    Args:
+        domain (str): _description_
+        api_key (str): XFORCE_KEY
+        api_pass (str): XFORCE_PASS
+
+    Returns:
+        dict: malwares found and dns info
+    """
+    auth = HTTPBasicAuth(api_key, api_pass)
+    base_api_url = "https://api.xforce.ibmcloud.com"
+    malware_url = f'{base_api_url}/url/malware/{domain}'
+    dns_url = f'{base_api_url}/resolve/{domain}'
+
+    try:
+        malware_response = requests.get(malware_url, auth=auth, timeout=60).json()
+        dns_response = requests.get(dns_url, auth=auth, timeout=60).json()
+        malwares = dict((k, malware_response[k]) for k in ["count", "malware"])
+        output = dict(alwares=malwares, dns=dns_response)
+        return dict(error=None, response=output)
+    except Exception as err:
+        return dict(error=err, response=None)
