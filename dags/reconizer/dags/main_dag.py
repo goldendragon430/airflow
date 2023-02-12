@@ -5,10 +5,11 @@ from airflow.decorators import dag
 from airflow.models import Variable
 
 from reconizer.common.raw_data_operator import RawDataOperator
-from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint, ssl_cert_entrypoint
-from scripts.api_scripts import apollo_entrypoint, have_i_been_pawned_entrypoint, signal_hire_entrypoint, \
+from reconizer.scripts.api_scripts import apollo_entrypoint, have_i_been_pawned_entrypoint, signal_hire_entrypoint, \
     view_dns_entrypoint, xforce_entrypoint
-from scripts.kali_scripts import ssl_scan_entrypoint, sublist3r_entrypoint_light, wafw00f_entrypoint, wapiti_entrypoint, \
+from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint, ssl_cert_entrypoint
+from reconizer.scripts.kali_scripts import ssl_scan_entrypoint, sublist3r_entrypoint_light, wafw00f_entrypoint, \
+    wapiti_entrypoint, \
     wpscan_entrypoint
 
 

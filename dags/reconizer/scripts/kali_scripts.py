@@ -114,3 +114,12 @@ def xsser_entrypoint(domain: str) -> dict:
         outputs.append(std_out)
 
     return dict(error=errors, response=outputs)
+
+
+def nmap_entrypoint(domain: str) -> dict:
+    command = f'nmap --max-rtt-timeout 50ms {domain} -Pn'
+    std_out, std_err = kali_machine_conn.run_command(command)
+    if not std_err:
+        return dict(error=None, response=std_out)
+    else:
+        return dict(error=std_err, response=None)
