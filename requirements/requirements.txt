@@ -1,5 +1,4 @@
---constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.4.3/constraints-3.10.txt"
-
+--constraint "/usr/local/airflow/dags/constraints_2.4.3-amazon-6.0.0.txt"
 
 paramiko
-# bbot==1.0.4.922
+bbot
