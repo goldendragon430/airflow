@@ -51,22 +51,21 @@ def run_scan_cli(domain: str, bbot_module: str, api_config: str = None) -> Tuple
     """
     output_format = "json"
     name = f'{bbot_module}_scan'
-    path = os.path.join(os.getcwd(), "bbot_scans")
-    command = ["bbot", "-t", domain, "-o", path, "-n", name, "-m", bbot_module, "-y",
+    command = ["bbot", "-t", domain, "-o", os.getcwd(), "-n", name, "-m", bbot_module, "-y",
                "--ignore-failed-deps", "-om", output_format]
     if api_config:
         command += add_api_key_to_config(api_config)
-    result = subprocess.run(command, timeout=60)
-    if not result.stderr:
-        return True, f'{name}/output.json'
 
-    return False, result.stderr.decode("utf-8")
+    try:
+        subprocess.check_call(command, timeout=180)
+        return True, f'{name}/output.json'
+    except Exception as err:
+        return False, str(err)
 
 
 def clean_scan_folder(scan_folder: str) -> None:
     try:
-        path = os.path.join(os.getcwd(), scan_folder)
-        subprocess.run(["rm", "-r", path], timeout=5, check=True)
+        subprocess.run(["rm", "-r", scan_folder], timeout=5, check=True)
     except subprocess.CalledProcessError as err:
         pass
     except OSError as err:
