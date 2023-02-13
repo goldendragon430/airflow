@@ -4,7 +4,8 @@ from airflow.decorators import dag
 from airflow.models import Variable
 
 from reconizer.common.raw_data_operator import RawDataOperator
-from reconizer.scripts.api_scripts import apollo_entrypoint, have_i_been_pawned_entrypoint, signal_hire_entrypoint, \
+from reconizer.scripts.api_scripts import apollo_entrypoint, have_i_been_pawned_entrypoint, rocket_reach_entrypoint, \
+    signal_hire_entrypoint, \
     view_dns_entrypoint, xforce_entrypoint
 from reconizer.scripts.bbot_scripts import shodan_dns_entrypoint, ssl_cert_entrypoint
 from reconizer.scripts.kali_scripts import nmap_entrypoint, ssl_scan_entrypoint, sublist3r_entrypoint_light, \
@@ -39,6 +40,9 @@ def main_dag():
     RawDataOperator(task_id="xforce", fn=xforce_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("xforce_key"),
                              Variable.get("secrets", deserialize_json=True).get("xforce_pass")])
+
+    RawDataOperator(task_id="rocketreach", fn=rocket_reach_entrypoint,
+                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("rocketreach")])
 
     # # Kali scripts
 

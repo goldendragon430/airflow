@@ -114,3 +114,8 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
         return dict(error=None, response=output)
     except Exception as err:
         return dict(error=err, response=None)
+
+
+def rocket_reach_entrypoint(domain: str, api_key: str) -> dict:
+    # WIP
+    return {}
