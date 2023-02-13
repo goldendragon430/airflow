@@ -1,4 +1,5 @@
 --constraint "/usr/local/airflow/dags/constraints_2.4.3-amazon-6.0.0.txt"
 
-paramiko
-bbot
+paramiko==3.0.0
+bbot==1.0.4.922
+rocketreach==2.1.5
