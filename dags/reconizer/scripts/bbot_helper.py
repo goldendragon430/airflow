@@ -80,3 +80,25 @@ def run_bbot_module(domain: str, bbot_module: str, api_config: str = None) -> di
         return dict(error=None, response=report)
     else:
         return dict(error=output, response=None)
+
+
+def flag_cli_run(domain: str, flag: str) -> Tuple[bool, str]:
+    output_format = "json"
+    name = f'{flag}_scan'
+    command = ["bbot", "-t", domain, "-f", flag, "-o", os.getcwd(), "-n", name, "-y", "--ignore-failed-deps", "-om",
+               output_format]
+    try:
+        subprocess.check_call(command, timeout=180)
+        return True, f'{name}/output.json'
+    except Exception as err:
+        return False, str(err)
+
+
+def run_bbot_flag(domain: str, flag: str) -> dict:
+    scan_succeeded, output = flag_cli_run(domain=domain, flag=flag)
+    if scan_succeeded:
+        report = get_scan_result(filepath=output, mode="json")
+        clean_scan_folder(scan_folder=f'{flag}_scan')
+        return dict(error=None, response=report)
+    else:
+        return dict(error=output, response=None)

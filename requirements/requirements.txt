@@ -2,4 +2,3 @@
 
 paramiko==3.0.0
 bbot==1.0.4.922
-rocketreach==2.1.5

@@ -5,7 +5,6 @@ import json
 from typing import List
 
 import requests
-import rocketreach
 from requests.auth import HTTPBasicAuth
 
 from reconizer.services.paginationHandler import post_pagination, wrapped_get_request, wrapped_post_request
@@ -118,12 +117,10 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
 
 
 def rocket_reach_entrypoint(domain: str, api_key: str) -> dict:
-    rr = rocketreach.Gateway(api_key=api_key)
-
-    # Check that the SDK is working
-    result = rr.account.get()
-    if result.is_success:
-        print(f'Success: {result.account}')
-    else:
-        print(f'Error: {result.message}!')
-    return {}
+    url = "https://rocketreach.co/api/v2/company/lookup/"
+    headers = {"Api-Key": api_key}
+    payload = dict(domain=domain)
+    response = requests.get(url, headers=headers, params=payload)
+    if response.ok:
+        return dict(error=None, response=response.json())
+    return dict(error=response.text, response=None)

@@ -631,4 +631,3 @@ zope.event==4.5.0
 zope.interface==5.5.1
 zstandard==0.19.0
 bbot==1.0.4.922
-rocketreach==2.1.5
