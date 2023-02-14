@@ -114,3 +114,13 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
         return dict(error=None, response=output)
     except Exception as err:
         return dict(error=err, response=None)
+
+
+def rocket_reach_entrypoint(domain: str, api_key: str) -> dict:
+    url = "https://rocketreach.co/api/v2/company/lookup/"
+    headers = {"Api-Key": api_key}
+    payload = dict(domain=domain)
+    response = requests.get(url, headers=headers, params=payload)
+    if response.ok:
+        return dict(error=None, response=response.json())
+    return dict(error=response.text, response=None)
