@@ -1,8 +1,9 @@
 import json
 from typing import Any, Callable, Collection, Mapping
+
+from airflow.models import Variable
 from airflow.models.baseoperator import BaseOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.models import Variable
 from airflow.utils.decorators import apply_defaults
 
 
@@ -17,7 +18,7 @@ def raw_data_path(run_id, dag_id, task_id):
 class RawDataOperator(BaseOperator):
 
     @apply_defaults
-    def __init__(self, *args,  fn: Callable,
+    def __init__(self, *args, fn: Callable,
                  op_args: Collection[Any] | None = None,
                  op_kwargs: Mapping[str, Any] | None = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,6 +31,8 @@ class RawDataOperator(BaseOperator):
         bucket = raw_data_bucket()
         data_path = raw_data_path(
             context['dag_run'].run_id, context['dag_run'].dag_id, context['task'].task_id)
+        # This line override the first arg and set the domain from configuration
+        self.op_args[0] = context["dag_run"].conf["kwargs"]["domain"]
         result = self.execute_callable()
         result_as_string = json.dumps(result)
 

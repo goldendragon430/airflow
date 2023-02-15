@@ -16,10 +16,11 @@ from reconizer.scripts.kali_scripts import nmap_entrypoint, ssl_scan_entrypoint,
 
 
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
-def main_dag():
+def main_dag(**kwargs):
     # BBot scripts
     RawDataOperator(task_id="shodan_dns", fn=shodan_dns_entrypoint,
-                    op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("shodan_dns")])
+                    op_args=["t",
+                             Variable.get("secrets", deserialize_json=True).get("shodan_dns")])
 
     RawDataOperator(task_id="sslcert", fn=ssl_cert_entrypoint, op_args=["www.ynet.co.il"])
 
@@ -27,7 +28,7 @@ def main_dag():
 
     RawDataOperator(task_id="cloud_enumeration_flag", fn=cloud_enumeration_flag_entrypoint, op_args=["www.ynet.co.il"])
 
-    # # Api scripts
+    # Api scripts
 
     RawDataOperator(task_id="haveibeenpawned", fn=have_i_been_pawned_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("haveibeenpawned")])
@@ -49,7 +50,7 @@ def main_dag():
     RawDataOperator(task_id="rocketreach", fn=rocket_reach_entrypoint,
                     op_args=["www.ynet.co.il", Variable.get("secrets", deserialize_json=True).get("rocketreach")])
 
-    # # Kali scripts
+    # Kali scripts
 
     RawDataOperator(task_id="wpscan", fn=wpscan_entrypoint,
                     op_args=["https://snoopdogg.com/", Variable.get("secrets", deserialize_json=True).get("wp_scan")])
