@@ -23,7 +23,7 @@ def run_scan(domain, **kwargs):
     if scan.status == "FINISHED":
         result = get_scan_result(**kwargs)
         # clean scan folder
-        subprocess.run(["rm", "-r", kwargs["name"]], timeout=5, check=True)
+        subprocess.run(["rm", "-r", kwargs["name"]], timeout=30, check=True)
         return result
 
     raise PartiallyDataError("test")
@@ -102,3 +102,16 @@ def run_bbot_flag(domain: str, flag: str) -> dict:
         return dict(error=None, response=report)
     else:
         return dict(error=output, response=None)
+
+
+def run_bbot_vulnerability_modules(domain: str) -> dict:
+    vuln_modules = ["badsecrets", "generic_ssrf", "iis_shortnames", "telerik", "nuclei"]
+    dict_args = dict(output_dir=os.getcwd(), name="vuln_scan")
+    scan = Scanner(domain, config=dict_args, modules=vuln_modules, output_modules=["json"], force_start=True)
+    for event in scan.start():
+        print(event)
+
+    if scan.status == "FINISHED":
+        return {}
+
+    return {}
