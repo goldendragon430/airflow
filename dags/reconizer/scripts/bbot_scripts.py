@@ -2,7 +2,8 @@
     This file contains all modules associated with bbot osint tool
 """
 
-from reconizer.scripts.bbot_helper import run_bbot_flag, run_bbot_module
+from reconizer.scripts.bbot_helper import run_bbot_flag, \
+    run_bbot_module, subdomains_entrypoint_internal
 
 
 def shodan_dns_entrypoint(domain: str, api_key: str) -> dict:
@@ -15,7 +16,7 @@ def ssl_cert_entrypoint(domain: str) -> dict:
 
 
 def subdomains_flag_entrypoint(domain: str) -> dict:
-    return run_bbot_flag(domain=domain, flag="subdomain-enum")
+    subdomains_entrypoint_internal(domain)
 
 
 def cloud_enumeration_flag_entrypoint(domain: str) -> dict:

@@ -1,5 +1,14 @@
 from typing import List
+
 import pandas as pd
+
+
+# def extract_by_event_types(df, event_type: str, tag: str) -> pd.DataFrame:
+#     if event_type in df["Event type"].unique():
+#         return df[df["Event type"] == event_type && tag in df[df[""]]]
+#     else:
+#         print(f" entered invalid event type, please try again")
+#         return None
 
 
 class ReportExtractor:
@@ -15,11 +24,4 @@ class ReportExtractor:
         return result
 
     def get_event_types(self) -> List[str]:
-        return self.df["Event type"].unique()
-
-    def extract_by_event_types(self, event_type: str) -> pd.DataFrame:
-        if event_type not in self.get_event_types():
-            print(f" entered invalid event type, please try again")
-            return None
-        else:
-            return self.df[self.df["Event type"] == event_type]
+        return

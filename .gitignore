@@ -11,3 +11,4 @@ dags/**/*.pyc
 !.vscode/settings.json
 /docker/config/.env.ranlocalrunner
 .idea
+dags/reconizer/dags/test_dag.py

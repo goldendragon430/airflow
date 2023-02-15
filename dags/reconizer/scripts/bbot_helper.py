@@ -8,6 +8,8 @@ from bbot.scanner.scanner import Scanner
 
 from reconizer.services.user_defined_exceptions import PartiallyDataError
 
+MAX_SCAN_TIME = 600
+
 
 def add_api_key_to_config(config_str: str) -> list:
     return ["-c", config_str]
@@ -82,36 +84,70 @@ def run_bbot_module(domain: str, bbot_module: str, api_config: str = None) -> di
         return dict(error=output, response=None)
 
 
-def flag_cli_run(domain: str, flag: str) -> Tuple[bool, str]:
-    output_format = "json"
-    name = f'{flag}_scan'
-    command = ["bbot", "-t", domain, "-f", flag, "-o", os.getcwd(), "-n", name, "-y", "--ignore-failed-deps", "-om",
-               output_format]
-    try:
-        subprocess.check_call(command, timeout=180)
-        return True, f'{name}/output.json'
-    except Exception as err:
-        return False, str(err)
+def flag_cli_run(domain: str, flag: str, output_format: str = "json"):
+    split_dash = flag.replace('-', '_')
+    name = f'{split_dash}_scan'
+    command = f'bbot -t {domain} -f {flag} -n {name} -o .  -y --ignore-failed-deps -om {output_format}'
+    # currently limited scan time to 10 minutes
+    result = subprocess.run(command.split(), capture_output=True, timeout=MAX_SCAN_TIME, text=True)
+    return result.stdout
 
 
 def run_bbot_flag(domain: str, flag: str) -> dict:
-    scan_succeeded, output = flag_cli_run(domain=domain, flag=flag)
-    if scan_succeeded:
-        report = get_scan_result(filepath=output, mode="json")
-        clean_scan_folder(scan_folder=f'{flag}_scan')
+    scan_status = flag_cli_run(domain=domain, flag=flag, output_format="json")
+    if os.path.isdir(f'{flag}_scan'):
+        report = get_scan_result(filepath=f'{flag}_scan/output.csv', mode="json")
+        # clean_scan_folder(scan_folder=f'{flag}_scan')
         return dict(error=None, response=report)
     else:
-        return dict(error=output, response=None)
+        return dict(error=f'status code {scan_status} please check your flags', response=None)
 
 
 def run_bbot_vulnerability_modules(domain: str) -> dict:
     vuln_modules = ["badsecrets", "generic_ssrf", "iis_shortnames", "telerik", "nuclei"]
     dict_args = dict(output_dir=os.getcwd(), name="vuln_scan")
     scan = Scanner(domain, config=dict_args, modules=vuln_modules, output_modules=["json"], force_start=True)
+    events = []
+    for event in scan.start():
+        events.append(event)
+
+    if scan.status == "FINISHED":
+        return events
+
+    return {}
+
+
+def parse_subdomain_result(events: list):
+    result = set()
+    for event in events:
+        if "subdomain" in event["tags"]:
+            result.add(event["data"])
+
+    return list(result)
+
+
+def subdomains_entrypoint_internal(domain):
+    config = dict(output_dir=os.getcwd())
+    output_modules = "certspotter otx leakix ipneighbor hackertarget dnsdumpster dnscommonsrv crt crobat anubisdb " \
+                     "dnszonetransfer wayback azure_tenant urlscan threatminer sublist3r riddler rapiddns"
+    mods = output_modules.split()
+    scan_name = "subdomains_scan"
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=mods, name=scan_name,
+                   force_start=True)
     for event in scan.start():
         print(event)
 
+    print("scan finished cool")
     if scan.status == "FINISHED":
-        return {}
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        print("got events correct")
+        domains = parse_subdomain_result(events)
+        print("got domains")
+        result = {"error": None, "response": domains}
+        print(json.dumps(result))
+        clean_scan_folder(scan_name)
+        return result
 
-    return {}
+    result = {"error": "found no domains", "response": None}
+    print(json.dumps(result))
+    return result
