@@ -16,7 +16,7 @@ def ssl_cert_entrypoint(domain: str) -> dict:
 
 
 def subdomains_flag_entrypoint(domain: str) -> dict:
-    subdomains_entrypoint_internal(domain)
+    return subdomains_entrypoint_internal(domain)
 
 
 def cloud_enumeration_flag_entrypoint(domain: str) -> dict:
