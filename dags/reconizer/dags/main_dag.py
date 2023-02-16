@@ -4,7 +4,7 @@ from airflow.decorators import dag
 from airflow.models import Variable
 
 from reconizer.common.raw_data_operator import RawDataOperator
-from reconizer.scripts.api_scripts import apollo_extract_emails
+from reconizer.scripts.api_scripts import apollo_extract_emails, viewdns_subdomains
 from reconizer.scripts.bbot_scripts import cloud_buckets_entrypoint, \
     emails_entrypoint, \
     subdomains_flag_entrypoint
@@ -19,7 +19,12 @@ def main_dag(**kwargs):
                     op_args=["provide domain", Variable.get("secrets", deserialize_json=True).get("apollo")])
 
     # subdomains
-    RawDataOperator(task_id="subdomains", fn=subdomains_flag_entrypoint, op_args=["provide domain in your conf"])
+    RawDataOperator(task_id="subdomains_bbot", fn=subdomains_flag_entrypoint, op_args=["provide domain in your conf"])
+
+    RawDataOperator(task_id="subdomains_viewdns", fn=viewdns_subdomains, op_args=["provide domain in your conf",
+                                                                                  Variable.get("secrets",
+                                                                                               deserialize_json=True).get(
+                                                                                      "view_dns")])
 
     # cloud buckets
     RawDataOperator(task_id="cloud_buckets", fn=cloud_buckets_entrypoint, op_args=["provide domain in your conf"])

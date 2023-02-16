@@ -2,6 +2,7 @@
     This file contains all modules that would collect data directly from api without connecting to new machines
 """
 import json
+import socket
 from typing import List
 
 import requests
@@ -139,3 +140,18 @@ def rocket_reach_entrypoint(domain: str, api_key: str) -> dict:
     if response.ok:
         return dict(error=None, response=response.json())
     return dict(error=response.text, response=None)
+
+
+def viewdns_subdomains(domain: str, api_key: str) -> dict:
+    ip = socket.gethostbyname(domain)
+    domains = []
+    reverse_ip_url = f'https://api.viewdns.info/reverseip/?host={ip}&apikey={api_key}&output=json'
+    response = requests.get(reverse_ip_url, timeout=30)
+    if response.ok:
+        data = response.json()["response"]
+        domains_count = int(data["domain_count"])
+        if domains_count > 0:
+            for domain in data["domains"]:
+                domains.append(domain["name"])
+
+    return dict(error=None, response=domains)
