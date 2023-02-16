@@ -12,22 +12,24 @@ from reconizer.scripts.bbot_scripts import cloud_buckets_entrypoint, \
 
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
 def main_dag(**kwargs):
+    secrets = Variable.get("secrets", deserialize_json=True)
+
     # emails
     RawDataOperator(task_id="emails_bbot", fn=emails_entrypoint, op_args=["provide domain in your conf"])
 
     RawDataOperator(task_id="emails_apollo", fn=apollo_extract_emails,
-                    op_args=["provide domain", Variable.get("secrets", deserialize_json=True).get("apollo")])
+                    op_args=["provide domain", secrets.get("apollo")])
 
     # subdomains
     RawDataOperator(task_id="subdomains_bbot", fn=subdomains_flag_entrypoint, op_args=["provide domain in your conf"])
 
-    RawDataOperator(task_id="subdomains_viewdns", fn=viewdns_subdomains, op_args=["provide domain in your conf",
-                                                                                  Variable.get("secrets",
-                                                                                               deserialize_json=True).get(
-                                                                                      "view_dns")])
+    RawDataOperator(task_id="subdomains_viewdns", fn=viewdns_subdomains,
+                    op_args=["provide domain in conf", secrets.get("view_dns")])
 
     # cloud buckets
     RawDataOperator(task_id="cloud_buckets", fn=cloud_buckets_entrypoint, op_args=["provide domain in your conf"])
+
+    # ips
 
 
 Dag = main_dag()

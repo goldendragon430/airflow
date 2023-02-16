@@ -63,7 +63,7 @@ def ssl_scan_entrypoint(domain: str) -> dict:
 def wapiti_entrypoint(domain: str) -> dict:
     filename = "wapiti_report.json"
     full_domain = f'https://{domain}'
-    command = f'wapiti -u {full_domain} -f json -o {filename}'
+    command = f'wapiti -u {full_domain} -m common -f json -o {filename}'
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         report = kali_machine_conn.sftp_scan_results(filename, mode="json")

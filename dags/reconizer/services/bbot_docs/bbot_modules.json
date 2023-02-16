@@ -156,24 +156,79 @@
       "SCREENSHOT"
     ],
     "needs_api": false
+  },
+  "header_brute": {
+    "flags": [
+      "active",
+      "brute-force",
+      "web-paraminer",
+      "aggressive",
+      "slow"
+    ],
+    "event_types": [
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "host_header": {
+    "flags": [
+      "active",
+      "web-advanced",
+      "aggressive"
+    ],
+    "event_types": [
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "httpx": {
+    "flags": [
+      "active",
+      "web-basic",
+      "safe"
+    ],
+    "event_types": [
+      "HTTP_RESPONSE",
+      "URL"
+    ],
+    "needs_api": false
+  },
+  "hunt": {
+    "flags": [
+      "active",
+      "web-advanced",
+      "safe"
+    ],
+    "event_types": [
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "iis_shortnames": {
+    "flags": [
+      "active",
+      "web-basic",
+      "safe",
+      "iis-shortnames"
+    ],
+    "event_types": [
+      "URL_HINT"
+    ],
+    "needs_api": false
+  },
+  "naabu": {
+    "flags": [
+      "active",
+      "portscan",
+      "aggressive"
+    ],
+    "event_types": [
+      "OPEN_TCP_PORT"
+    ],
+    "needs_api": false
   }
 }
 
-
-+---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
-| header_brute        | scan     |         | Check for common HTTP header parameters  | active, aggressive, brute-force, slow, web- | FINDING                                  |
-|                     |          |         |                                          | paramminer                              |                                          |
-+---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
-| host_header         | scan     |         | Try common HTTP Host header spoofing     | active, aggressive, web-advanced          | FINDING                                  |
-|                     |          |         | techniques                               |                                         |                                          |
-+---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
-| httpx               | scan     |         | Visit webpages. Many other modules rely  | active, safe, web-basic                   | HTTP_RESPONSE, URL                        |
-|                     |          |         | on httpx                                 |                                         |                                          |
-+---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
-| hunt                | scan     |         | Watch for commonly-exploitable HTTP      | active, safe,web-advanced                | FINDING                                  |
-|                     |          |         | parameters                               |                                         |                                          |
-+---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
-| iis_shortnames      | scan     |         | Check for IIS shortname vulnerability    | active, iis-shortnames, safe, web-basic    | URL_HINT                                 |
 +---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
 | naabu               | scan     |         | Execute port scans with naabu            | active, aggressive, portscan              | OPEN_TCP_PORT                            |
 +---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
