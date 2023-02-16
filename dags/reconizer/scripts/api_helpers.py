@@ -24,3 +24,17 @@ def xforce_retireve_vulnerability_info(vulnerability_id: str, auth) -> dict:
     except Exception as err:
         pass
     return {}
+
+
+def apollo_pagination(domain: str, api_key: str) -> list:
+    session = requests.Session()
+    url = "https://api.apollo.io/v1/mixed_people/search"
+    data = {"q_organization_domains": domain, "api_key": api_key, "page": 1}
+    currP, totalP = 1, 2
+    while currP <= totalP:
+        data["page"] = currP
+        page = session.post(url, data=data).json()
+        totalP = page["pagination"]["total_pages"]
+        currP += 1
+        emails = [person["email"] for person in page["people"] if person.get("email_status", "") == "verified"]
+        yield emails

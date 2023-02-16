@@ -7,6 +7,7 @@ from typing import List
 import requests
 from requests.auth import HTTPBasicAuth
 
+from reconizer.scripts.api_helpers import apollo_pagination
 from reconizer.services.paginationHandler import post_pagination, wrapped_get_request, wrapped_post_request
 from reconizer.services.user_defined_exceptions import PartiallyDataError
 
@@ -41,6 +42,14 @@ def apollo_entrypoint(domain: str, api_key: str) -> dict:
         return dict(error=key_error, response=None)
     else:
         return dict(error=None, response=responses)
+
+
+def apollo_extract_emails(domain: str, api_key: str) -> dict:
+    emails = set()
+    for mails in apollo_pagination(domain, api_key):
+        emails.update(set(mails))
+
+    return dict(error=None, response=list(emails))
 
 
 def signal_hire_entrypoint(search_items: List[str], api_key: str) -> dict:

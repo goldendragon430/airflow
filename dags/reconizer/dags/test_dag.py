@@ -14,6 +14,11 @@ from reconizer.scripts.kali_scripts import nmap_entrypoint, ssl_scan_entrypoint,
     wapiti_entrypoint, \
     wpscan_entrypoint
 
+"""
+Assets: domain/subdomain/url/port/people/emails/ip
+Vulnerabilities: for domain/subdomain/url/ip
+"""
+
 
 @dag(dag_id="test_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
 def main_dag(**kwargs):
