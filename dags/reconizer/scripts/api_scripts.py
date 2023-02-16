@@ -12,15 +12,21 @@ from reconizer.services.user_defined_exceptions import PartiallyDataError
 
 
 def have_i_been_pawned_entrypoint(domain: str, api_key: str) -> dict:
+    result = {}
     base_url = "https://haveibeenpwned.com/api/v3"
-    breach_url = f'{base_url}/breaches'
+    breachs_url = f'{base_url}/breaches'
     params = {"domain": domain}
     headers = {
         'hibp-api-key': api_key,
-        'timeout': '2.5'
+        'timeout': '10'
     }
-    response = requests.get(breach_url, params=params, headers=headers)
-    return response.json() if response.ok else {}
+    response = requests.get(breachs_url, params=params, headers=headers)
+    if response.ok:
+        result = dict(error=None, response=response.json())
+    else:
+        message = f"{breachs_url} returns {response.status_code} please check your params\n"
+        result = dict(error=message, response=None)
+    return result
 
 
 def apollo_entrypoint(domain: str, api_key: str) -> dict:
