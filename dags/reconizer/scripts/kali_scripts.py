@@ -11,7 +11,7 @@ kali_machine_conn = KaliMachineConn(retries=3, interval=5)
 
 
 def harvester_entrypoint(domain: str) -> dict:
-    command = f'theHarvester -d {domain} -l 500 -b google'
+    command = f'theHarvester -d {domain} -l 100 -b all'
     std_out, std_err = kali_machine_conn.run_command(command)
     return dict(error=std_err, response=std_out)
 
@@ -44,14 +44,15 @@ def wafw00f_entrypoint(domain: str) -> dict:
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         result = kali_machine_conn.sftp_scan_results(filename, mode="json")
+        wafs = [item["firewall"] for item in result if item.get("detected", False)]
         kali_machine_conn.clean_file_output(filename)
-        return dict(error=None, response=result)
+        return dict(error=None, response=wafs)
     else:
         return dict(error=std_err, response=None)
 
 
 def ssl_scan_entrypoint(domain: str) -> dict:
-    command = f'sslscan --ocsp --connect-timeout=15 --sleep=75 {domain}'
+    command = f'sslscan --ocsp --connect-timeout=15 --sleep=25 {domain}'
     std_out, std_err = kali_machine_conn.run_command(command)
     if std_err:
         return dict(error=std_err, response=None)
@@ -61,7 +62,8 @@ def ssl_scan_entrypoint(domain: str) -> dict:
 
 def wapiti_entrypoint(domain: str) -> dict:
     filename = "wapiti_report.json"
-    command = f'wapiti -u {domain} -f json -o filename'
+    full_domain = f'https://{domain}'
+    command = f'wapiti -u {full_domain} -f json -o {filename}'
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         report = kali_machine_conn.sftp_scan_results(filename, mode="json")
