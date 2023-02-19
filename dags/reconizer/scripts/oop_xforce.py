@@ -1,17 +1,17 @@
-# link: https://gist.github.com/srinivas946/a50e7ed5b931ca815c92975629b2cb8c#file-ibmxforce_object_oriented-py
 import base64
+import socket
 
 import requests
 
 
-# ================================================================
-#   IBMXForce CLASS PROVIDES THREAT INFORMATION RELATED TO IOC'S
-# ================================================================
 class IBMXForce:
 
-    # ----------------------------------------------------------------------------
-    #   CONSTRUCTOR WHICH LOADS ON OBJECT CREATION - NO EXPLICIT INVOKE REQUIRED
-    # ----------------------------------------------------------------------------
+    @staticmethod
+    def convert_to_base64(api_key, api_password):
+        string_format = f'{api_key}:{api_password}'.encode()
+        base64_format = f'Basic {base64.b64encode(string_format).decode()}'
+        return base64_format
+
     def __init__(self, api_key, api_password):
         self._headers = {'Authorization': self.convert_to_base64(api_key=api_key, api_password=api_password)}
 
@@ -34,19 +34,7 @@ class IBMXForce:
         # API REALTED TO WHOIS
         self._whois_api = "https://api.xforce.ibmcloud.com/whois/{host}"
 
-    # --------------------------------------------------------------------------------
-    #   CONVERT API KEY AND API PASSWORD TO BASE64 ENCODED FORMAT FOR AUTHENTICATION
-    # --------------------------------------------------------------------------------
-    def convert_to_base64(self, api_key, api_password):
-        # convert string to bytes
-        string_format = f'{api_key}:{api_password}'.encode()
-        # convert bytes to base64 encode format and again decode bytes to normal string
-        base64_format = f'Basic {base64.b64encode(string_format).decode()}'
-        return base64_format
-
-    # -------------------------------------------------------------------------
     #   PROVIDE IP ADDRESS TO GET INFORMATION RELATED TO RESPSECTIVE API CALL
-    # -------------------------------------------------------------------------
     def get_ip_info(self, ip_mode, ip):
         response = None
         if ip_mode == 'category': response = requests.get(url=self._ip_category_api.replace("{ip}", ip),
@@ -58,8 +46,8 @@ class IBMXForce:
         if ip_mode == 'malware': response = requests.get(url=self._ip_malware_api.replace("{ip}", ip),
                                                          headers=self._headers)
         if response.ok:
-            return response.json()  # returns json but parse data with customized information
-        # If HTTP status code is not 200 then it will print status code and the reason behind it
+            return response.json()
+
         else:
             print(f'Status Code : {response.status_code} | Reason : {response.reason}')
             return None
@@ -69,7 +57,7 @@ class IBMXForce:
     # -------------------------------------------------------------------------
     def get_url_info(self, url_mode, url):
         response = None
-        # make a request to ibm using respective api call
+
         if url_mode == 'category': response = requests.get(url=self._url_category_api.replace("{url}", url),
                                                            headers=self._headers)
         if url_mode == 'history': response = requests.get(url=self._url_history_api.replace("{url}", url),
@@ -78,14 +66,10 @@ class IBMXForce:
                                                          headers=self._headers)
         if url_mode == 'malware': response = requests.get(url=self._url_malware_api.replace("{url}", url),
                                                           headers=self._headers)
-        if response is not None:
-            if response.status_code == 200:
-                return response.json()  # returns json but parse data with customized information
-            # If HTTP status code is not 200 then it will print status code and the reason behind it
-            else:
-                print(f'Status Code : {response.status_code} | Reason : {response.reason}')
-                return None
+        if response.ok:
+            return response.json()
         else:
+            print(f'Status Code : {response.status_code} | Reason : {response.reason}')
             return None
 
     # -------------------------------------------------------------------------
@@ -132,24 +116,32 @@ class IBMXForce:
 # ----------------------------------------------
 
 
-def xforce_oop_entrypoint(api_key: str, api_password: str) -> dict:
+def xforce_oop_entrypoint(domain: str, api_key: str, api_password: str) -> dict:
+    ip = socket.gethostbyname(domain)
+
     result = []
     # create object for IBMXForce Class
     ibm = IBMXForce(api_key=api_key, api_password=api_password)
 
-    # GET IP INFORMATION
     for mode in ["category", "report", "reputation", "malware"]:
-        result.append(ibm.get_ip_info(ip_mode=mode, ip='8.8.8.8'))
+        # GET IP INFORMATION
+        result.append(ibm.get_ip_info(ip_mode=mode, ip=ip))
+        # GET URL OR DOMAIN INFORMATION
+        result.append(ibm.get_url_info(url_mode=mode, url=domain))
 
-    # GET URL OR DOMAIN INFORMATION
-    print(ibm.get_url_info(url_mode='category', url='https://www.google.com'))
-    print(ibm.get_url_info(url_mode='report', url='https://www.google.com'))
-    print(ibm.get_url_info(url_mode='history', url='https://www.google.com'))
-    print(ibm.get_url_info(url_mode='malware', url='https://www.google.com'))
-
-    # GET MALWARE INFORMATION
-    print(ibm.get_malware_info(malware_mode='filehash', entity='enter_file_hash'))
-    print(ibm.get_malware_info(malware_mode='family', entity='enter_family_name'))
+    # # GET MALWARE INFORMATION
+    # print(ibm.get_malware_info(malware_mode='filehash', entity='enter_file_hash'))
+    # print(ibm.get_malware_info(malware_mode='family', entity='enter_family_name'))
 
     # GET WHOIS INFORMATION
-    print(ibm.get_whois_info(entity='8.8.8.8'))  # entity parameter can accept IP, URL, Domain and File Hash
+    result.append(ibm.get_whois_info(entity=domain))
+    return dict(error=None, response=result)
+
+
+domain = "walla.co.il"
+ap = "eefc9616-7f87-4290-9965-7ce53e22bbd3"
+ap_pass = "4be25c9c-ffa3-40e3-8a9c-017ba332466a"
+res = xforce_oop_entrypoint(domain, ap, ap_pass)
+for k, v in res.items():
+    print(k)
+    print(v)

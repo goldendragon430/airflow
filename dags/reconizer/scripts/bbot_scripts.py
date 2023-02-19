@@ -2,7 +2,7 @@
     This file contains all modules associated with bbot osint tool
 """
 
-from reconizer.scripts.bbot_helper import run_bbot_flag, \
+from reconizer.scripts.bbot_helper import cloud_buckets_entrypoint_internal, emails_entrypoint_internal, \
     run_bbot_module, subdomains_entrypoint_internal
 
 
@@ -19,5 +19,9 @@ def subdomains_flag_entrypoint(domain: str) -> dict:
     return subdomains_entrypoint_internal(domain)
 
 
-def cloud_enumeration_flag_entrypoint(domain: str) -> dict:
-    return run_bbot_flag(domain=domain, flag="cloud-enum")
+def emails_entrypoint(domain: str) -> dict:
+    return emails_entrypoint_internal(domain)
+
+
+def cloud_buckets_entrypoint(domain: str) -> dict:
+    return cloud_buckets_entrypoint_internal(domain=domain)

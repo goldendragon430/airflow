@@ -2,25 +2,33 @@
     This file contains all modules that would collect data directly from api without connecting to new machines
 """
 import json
+import socket
 from typing import List
 
 import requests
 from requests.auth import HTTPBasicAuth
 
+from reconizer.scripts.api_helpers import apollo_pagination
 from reconizer.services.paginationHandler import post_pagination, wrapped_get_request, wrapped_post_request
 from reconizer.services.user_defined_exceptions import PartiallyDataError
 
 
 def have_i_been_pawned_entrypoint(domain: str, api_key: str) -> dict:
+    result = {}
     base_url = "https://haveibeenpwned.com/api/v3"
-    breach_url = f'{base_url}/breaches'
+    breachs_url = f'{base_url}/breaches'
     params = {"domain": domain}
     headers = {
         'hibp-api-key': api_key,
-        'timeout': '2.5'
+        'timeout': '10'
     }
-    response = requests.get(breach_url, params=params, headers=headers)
-    return response.json() if response.ok else {}
+    response = requests.get(breachs_url, params=params, headers=headers)
+    if response.ok:
+        result = dict(error=None, response=response.json())
+    else:
+        message = f"{breachs_url} returns {response.status_code} please check your params\n"
+        result = dict(error=message, response=None)
+    return result
 
 
 def apollo_entrypoint(domain: str, api_key: str) -> dict:
@@ -35,6 +43,14 @@ def apollo_entrypoint(domain: str, api_key: str) -> dict:
         return dict(error=key_error, response=None)
     else:
         return dict(error=None, response=responses)
+
+
+def apollo_extract_emails(domain: str, api_key: str) -> dict:
+    emails = set()
+    for mails in apollo_pagination(domain, api_key):
+        emails.update(set(mails))
+
+    return dict(error=None, response=list(emails))
 
 
 def signal_hire_entrypoint(search_items: List[str], api_key: str) -> dict:
@@ -104,14 +120,10 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
     auth = HTTPBasicAuth(api_key, api_pass)
     base_api_url = "https://api.xforce.ibmcloud.com"
     malware_url = f'{base_api_url}/url/malware/{domain}'
-    dns_url = f'{base_api_url}/resolve/{domain}'
 
     try:
         malware_response = requests.get(malware_url, auth=auth, timeout=60).json()
-        dns_response = requests.get(dns_url, auth=auth, timeout=60).json()
-        malwares = dict((k, malware_response[k]) for k in ["count", "malware"])
-        output = dict(alwares=malwares, dns=dns_response)
-        return dict(error=None, response=output)
+        return dict(error=None, response=malware_response["malware"])
     except Exception as err:
         return dict(error=err, response=None)
 
@@ -124,3 +136,18 @@ def rocket_reach_entrypoint(domain: str, api_key: str) -> dict:
     if response.ok:
         return dict(error=None, response=response.json())
     return dict(error=response.text, response=None)
+
+
+def viewdns_subdomains(domain: str, api_key: str) -> dict:
+    ip = socket.gethostbyname(domain)
+    domains = []
+    reverse_ip_url = f'https://api.viewdns.info/reverseip/?host={ip}&apikey={api_key}&output=json'
+    response = requests.get(reverse_ip_url, timeout=30)
+    if response.ok:
+        data = response.json()["response"]
+        domains_count = int(data["domain_count"])
+        if domains_count > 0:
+            for domain in data["domains"]:
+                domains.append(domain["name"])
+
+    return dict(error=None, response=domains)

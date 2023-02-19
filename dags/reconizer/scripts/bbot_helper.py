@@ -104,15 +104,16 @@ def run_bbot_flag(domain: str, flag: str) -> dict:
 
 
 def run_bbot_vulnerability_modules(domain: str) -> dict:
-    vuln_modules = ["badsecrets", "generic_ssrf", "iis_shortnames", "telerik", "nuclei"]
-    dict_args = dict(output_dir=os.getcwd(), name="vuln_scan")
-    scan = Scanner(domain, config=dict_args, modules=vuln_modules, output_modules=["json"], force_start=True)
-    events = []
+    config = dict(output_dir=os.getcwd())
+    vuln_modules = ["badsecrets", "generic_ssrf", "iis_shortnames", "telerik", "url_manipulation"]
+    scan_name = "vuln_scan"
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=vuln_modules, name=scan_name,
+                   force_start=True)
     for event in scan.start():
-        events.append(event)
+        print(event)
 
     if scan.status == "FINISHED":
-        return events
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
 
     return {}
 
@@ -151,3 +152,95 @@ def subdomains_entrypoint_internal(domain):
     result = {"error": "found no domains", "response": None}
     print(json.dumps(result))
     return result
+
+
+def parse_emails_result(events: list) -> list:
+    emails = set()
+    for event in events:
+        if event.get("type", "") == "EMAIL_ADDRESS":
+            emails.add(event["data"])
+    return list(emails)
+
+
+def emails_entrypoint_internal(domain: str) -> dict:
+    email_modules = "speculate emailformat pgp skymem PTR".split()
+    config = dict(output_dir=os.getcwd())
+    scan_name = "emails_scan"
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=email_modules, name=scan_name,
+                   force_start=True)
+    for event in scan.start():
+        print(event)
+
+    print("scan finished cool")
+    if scan.status == "FINISHED":
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        print("got events correct")
+        emails = parse_emails_result(events)
+        print("got emails")
+        result = {"error": None, "response": emails}
+        print(json.dumps(result))
+        clean_scan_folder(scan_name)
+        return result
+
+    result = {"error": "found no emails", "response": []}
+    print(json.dumps(result))
+    return result
+
+
+def parse_cloud_buckets(events: list) -> list:
+    buckets_urls = []
+    for event in events:
+        if event.get("type", "") == "STORAGE_BUCKET":
+            try:
+                buckets_urls.append(event["data"]["url"])
+            except KeyError as err:
+                continue
+
+    return buckets_urls
+
+
+def cloud_buckets_entrypoint_internal(domain: str) -> dict:
+    config = dict(output_dir=os.getcwd())
+    cloud_bucket_module = "bucket_aws bucket_azure bucket_digitalocean bucket_gcp".split()
+    scan_name = "buckets_scan"
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=cloud_bucket_module, name=scan_name,
+                   force_start=True)
+    for event in scan.start():
+        print(event)
+
+    print("scan finished")
+    if scan.status == "FINISHED":
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        print("got events correct")
+        buckets = parse_cloud_buckets(events)
+        print("got buckets urls")
+        result = {"error": None, "response": buckets}
+        print(json.dumps(result))
+        clean_scan_folder(scan_name)
+        return result
+
+    result = {"error": "found no buckets", "response": []}
+    print(json.dumps(result))
+    return result
+
+
+def read_modules(filepath: str) -> list:
+    with open(filepath, mode="r") as file:
+        mods = json.loads(file.read())
+        return list(mods.keys())
+
+
+def run_all_modules(domain: str) -> dict:
+    config = dict(output_dir=os.getcwd(), ignore_failed_deps=True)
+    scan_name = "all_modules"
+    bbot_modules = read_modules("../services/bbot_modules.json")
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_modules, name=scan_name,
+                   force_start=True)
+    for event in scan.start():
+        print(event)
+
+    if scan.status == "FINISHED":
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        return events
+    else:
+        return {}
