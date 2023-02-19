@@ -1,0 +1,566 @@
+usage: bbot [-h] [--help-all] [-t TARGET [TARGET ...]]
+            [-w WHITELIST [WHITELIST ...]] [-b BLACKLIST [BLACKLIST ...]]
+            [--strict-scope] [-n SCAN_NAME] [-m MODULE [MODULE ...]] [-l]
+            [-em MODULE [MODULE ...]] [-f FLAG [FLAG ...]]
+            [-rf FLAG [FLAG ...]] [-ef FLAG [FLAG ...]]
+            [-om MODULE [MODULE ...]] [-o DIR] [-c [CONFIG ...]]
+            [--allow-deadly] [-v] [-d] [-s] [--force] [-y] [--dry-run]
+            [--current-config] [--save-wordcloud FILE] [--load-wordcloud FILE]
+            [--no-deps | --force-deps | --retry-deps | --ignore-failed-deps | --install-all-deps]
+            [-a] [--version]
+
+Bighuge BLS OSINT Tool
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --help-all            Display full help including module config options
+  -n SCAN_NAME, --name SCAN_NAME
+                        Name of scan (default: random)
+  -m MODULE [MODULE ...], --modules MODULE [MODULE ...]
+                        Modules to enable. Choices: affiliates,anubisdb,asn,azure_tenant,badsecrets,bevigil,binaryedge,bucket_aws,bucket_azure,bucket_digitalocean,bucket_gcp,builtwith,bypass403,c99,censys,certspotter,cookie_brute,crobat,crt,dnscommonsrv,dnsdumpster,dnszonetransfer,emailformat,ffuf,ffuf_shortnames,fullhunt,generic_ssrf,getparam_brute,github,gowitness,hackertarget,header_brute,host_header,httpx,hunt,hunterio,iis_shortnames,ipneighbor,ipstack,leakix,massdns,naabu,ntlm,nuclei,otx,passivetotal,pgp,rapiddns,riddler,securitytrails,shodan_dns,skymem,smuggler,sslcert,sublist3r,telerik,threatminer,url_manipulation,urlscan,vhost,viewdns,virustotal,wappalyzer,wayback,zoomeye
+  -l, --list-modules    List available modules.
+  -em MODULE [MODULE ...], --exclude-modules MODULE [MODULE ...]
+                        Exclude these modules.
+  -f FLAG [FLAG ...], --flags FLAG [FLAG ...]
+                        Enable modules by flag. Choices: active,affiliates,aggressive,brute-force,cloud-enum,deadly,email-enum,iis-shortnames,passive,portscan,report,safe,slow,subdomain-enum,web-advanced,web-basic,web-paramminer,web-screenshots
+  -rf FLAG [FLAG ...], --require-flags FLAG [FLAG ...]
+                        Disable modules that don't have these flags (e.g. --require-flags passive)
+  -ef FLAG [FLAG ...], --exclude-flags FLAG [FLAG ...]
+                        Disable modules with these flags. (e.g. --exclude-flags brute-force)
+  -om MODULE [MODULE ...], --output-modules MODULE [MODULE ...]
+                        Output module(s). Choices: asset_inventory,csv,http,human,json,neo4j,python,websocket
+  -o DIR, --output-dir DIR
+  -c [CONFIG ...], --config [CONFIG ...]
+                        custom config file, or configuration options in key=value format: 'modules.shodan.api_key=1234'
+  --allow-deadly        Enable the use of highly aggressive modules
+  -v, --verbose         Be more verbose
+  -d, --debug           Enable debugging
+  -s, --silent          Be quiet
+  --force               Run scan even if module setups fail
+  -y, --yes             Skip scan confirmation prompt
+  --dry-run             Abort before executing scan
+  --current-config      Show current config in YAML format
+
+Target:
+  -t TARGET [TARGET ...], --targets TARGET [TARGET ...]
+                        Targets to seed the scan
+  -w WHITELIST [WHITELIST ...], --whitelist WHITELIST [WHITELIST ...]
+                        What's considered in-scope (by default it's the same as --targets)
+  -b BLACKLIST [BLACKLIST ...], --blacklist BLACKLIST [BLACKLIST ...]
+                        Don't touch these things
+  --strict-scope        Don't consider subdomains of target/whitelist to be in-scope
+
+Word cloud:
+  Save/load wordlist of common words gathered during a scan
+
+  --save-wordcloud FILE
+                        Output wordcloud to custom file when the scan completes
+  --load-wordcloud FILE
+                        Load wordcloud from a custom file
+
+Module dependencies:
+  Control how modules install their dependencies
+
+  --no-deps             Don't install module dependencies
+  --force-deps          Force install all module dependencies
+  --retry-deps          Try again to install failed module dependencies
+  --ignore-failed-deps  Run modules even if they have failed dependencies
+  --install-all-deps    Install dependencies for all modules
+
+Agent:
+  Report back to a central server
+
+  -a, --agent-mode      Start in agent mode
+
+Misc:
+  --version             show BBOT version and exit
+
+EXAMPLES
+
+    list modules:
+        bbot -l
+
+    subdomain enumeration:
+        bbot -t evilcorp.com -f subdomain-enum -m httpx
+
+    passive modules only:
+        bbot -t evilcorp.com -f passive
+
+    subdomains + web screenshots:
+        bbot -t targets.txt -f subdomain-enum -m httpx gowitness --name my_scan --output-dir .
+
+    subdomains + basic web scanning:
+        bbot -t evilcorp.com -f subdomain-enum web-basic
+
+    single module:
+        bbot -t evilcorp.com -m github -c modules.github.api_key=deadbeef
+
+    web spider + advanced web scan:
+        bbot -t www.evilcorp.com -m httpx -f web-basic web-advanced -c web_spider_distance=2 web_spider_depth=2
+
+    subdomains + emails + cloud buckets + portscan + screenshots + nuclei:
+        bbot -t evilcorp.com -f subdomain-enum email-enum cloud-enum web-basic -m naabu gowitness nuclei --allow-deadly
+
+
+### MODULES ###
+
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| Module              | Type     | Needs   | Description                              | Flags                                   | Produced Events                          |
+|                     |          | API     |                                          |                                         |                                          |
+|                     |          | Key     |                                          |                                         |                                          |
++=====================+==========+=========+==========================================+=========================================+==========================================+
+| badsecrets          | scan     |         | Library for detecting known or weak      | active,safe,web-basic                   | FINDING,VULNERABILITY                    |
+|                     |          |         | secrets on across many platforms         |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bucket_aws          | scan     |         | Check for S3 buckets related to target   | active,cloud-enum,safe                  | FINDING,STORAGE_BUCKET                   |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bucket_azure        | scan     |         | Check for Azure storage blobs related to | active,cloud-enum,safe                  | FINDING,STORAGE_BUCKET                   |
+|                     |          |         | target                                   |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bucket_digitalocean | scan     |         | Check for DigitalOcean spaces related to | active,cloud-enum,safe                  | FINDING,STORAGE_BUCKET                   |
+|                     |          |         | target                                   |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bucket_gcp          | scan     |         | Check for Google object storage related  | active,cloud-enum,safe                  | FINDING,STORAGE_BUCKET                   |
+|                     |          |         | to target                                |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bypass403           | scan     |         | Check 403 pages for common bypasses      | active,aggressive,web-advanced          | FINDING                                  |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| cookie_brute        | scan     |         | Check for common HTTP cookie parameters  | active,aggressive,brute-force,slow,web- | FINDING                                  |
+|                     |          |         |                                          | paramminer                              |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| dnszonetransfer     | scan     |         | Attempt DNS zone transfers               | active,safe,subdomain-enum              | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| ffuf                | scan     |         | A fast web fuzzer written in Go          | active,aggressive,brute-                | URL                                      |
+|                     |          |         |                                          | force,deadly,web-advanced               |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| ffuf_shortnames     | scan     |         | Use ffuf in combination IIS shortnames   | active,aggressive,brute-force,iis-      | URL                                      |
+|                     |          |         |                                          | shortnames,web-advanced                 |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| generic_ssrf        | scan     |         | Check for generic SSRFs                  | active,aggressive,web-advanced          | VULNERABILITY                            |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| getparam_brute      | scan     |         | Check for common HTTP GET parameters     | active,aggressive,brute-force,slow,web- | FINDING                                  |
+|                     |          |         |                                          | paramminer                              |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| gowitness           | scan     |         | Take screenshots of webpages             | active,safe,web-screenshots             | SCREENSHOT                               |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| header_brute        | scan     |         | Check for common HTTP header parameters  | active,aggressive,brute-force,slow,web- | FINDING                                  |
+|                     |          |         |                                          | paramminer                              |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| host_header         | scan     |         | Try common HTTP Host header spoofing     | active,aggressive,web-advanced          | FINDING                                  |
+|                     |          |         | techniques                               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| httpx               | scan     |         | Visit webpages. Many other modules rely  | active,safe,web-basic                   | HTTP_RESPONSE,URL                        |
+|                     |          |         | on httpx                                 |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| hunt                | scan     |         | Watch for commonly-exploitable HTTP      | active,safe,web-advanced                | FINDING                                  |
+|                     |          |         | parameters                               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| iis_shortnames      | scan     |         | Check for IIS shortname vulnerability    | active,iis-shortnames,safe,web-basic    | URL_HINT                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| naabu               | scan     |         | Execute port scans with naabu            | active,aggressive,portscan              | OPEN_TCP_PORT                            |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| ntlm                | scan     |         | Watch for HTTP endpoints that support    | active,safe,web-basic                   | DNS_NAME,FINDING                         |
+|                     |          |         | NTLM authentication                      |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| nuclei              | scan     |         | Fast and customisable vulnerability      | active,aggressive,deadly,web-advanced   | FINDING,VULNERABILITY                    |
+|                     |          |         | scanner                                  |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| smuggler            | scan     |         | Check for HTTP smuggling                 | active,aggressive,brute-force,slow,web- | FINDING                                  |
+|                     |          |         |                                          | advanced                                |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| sslcert             | scan     |         | Visit open ports and retrieve SSL        | active,affiliates,email-                | DNS_NAME,EMAIL_ADDRESS                   |
+|                     |          |         | certificates                             | enum,safe,subdomain-enum                |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| telerik             | scan     |         | Scan for critical Telerik                | active,aggressive,slow,web-basic        | FINDING,VULNERABILITY                    |
+|                     |          |         | vulnerabilities                          |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| url_manipulation    | scan     |         | Attempt to identify URL parsing/routing  | active,aggressive,web-advanced          | FINDING                                  |
+|                     |          |         | based vulnerabilities                    |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| vhost               | scan     |         | Fuzz for virtual hosts                   | active,aggressive,brute-                | DNS_NAME,VHOST                           |
+|                     |          |         |                                          | force,deadly,slow,web-advanced          |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| wappalyzer          | scan     |         | Extract technologies from web responses  | active,safe,web-basic                   | TECHNOLOGY                               |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| affiliates          | scan     |         | Summarize affiliate domains at the end   | passive,report,safe                     |                                          |
+|                     |          |         | of a scan                                |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| anubisdb            | scan     |         | Query jldc.me's database for subdomains  | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| asn                 | scan     |         | Query ripe and bgpview.io for ASNs       | passive,report,safe,subdomain-enum      | ASN                                      |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| azure_tenant        | scan     |         | Query Azure for tenant sister domains    | affiliates,passive,safe,subdomain-enum  | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| bevigil             | scan     | X       | Retrieve OSINT data from mobile          | passive,safe,subdomain-enum             | DNS_NAME,URL_UNVERIFIED                  |
+|                     |          |         | applications using BeVigil               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| binaryedge          | scan     | X       | Query the BinaryEdge API                 | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| builtwith           | scan     | X       | Query Builtwith.com for subdomains       | affiliates,passive,safe,subdomain-enum  | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| c99                 | scan     | X       | Query the C99 API for subdomains         | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| censys              | scan     | X       | Query the Censys API                     | email-enum,passive,safe,subdomain-enum  | DNS_NAME,EMAIL_ADDRESS,IP_ADDRESS,OPEN_P |
+|                     |          |         |                                          |                                         | ORT,PROTOCOL                             |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| certspotter         | scan     |         | Query Certspotter's API for subdomains   | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| crobat              | scan     |         | Query Project Crobat for subdomains      | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| crt                 | scan     |         | Query crt.sh (certificate transparency)  | passive,safe,subdomain-enum             | DNS_NAME                                 |
+|                     |          |         | for subdomains                           |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| dnscommonsrv        | scan     |         | Check for common SRV records             | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| dnsdumpster         | scan     |         | Query dnsdumpster for subdomains         | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| emailformat         | scan     |         | Query email-format.com for email         | email-enum,passive,safe                 | EMAIL_ADDRESS                            |
+|                     |          |         | addresses                                |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| fullhunt            | scan     | X       | Query the fullhunt.io API for subdomains | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| github              | scan     | X       | Query Github's API for related           | passive,safe,subdomain-enum             | URL_UNVERIFIED                           |
+|                     |          |         | repositories                             |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| hackertarget        | scan     |         | Query the hackertarget.com API for       | passive,safe,subdomain-enum             | DNS_NAME                                 |
+|                     |          |         | subdomains                               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| hunterio            | scan     | X       | Query hunter.io for emails               | email-enum,passive,safe,subdomain-enum  | DNS_NAME,EMAIL_ADDRESS,URL_UNVERIFIED    |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| ipneighbor          | scan     |         | Look beside IPs in their surrounding     | aggressive,passive,subdomain-enum       | IP_ADDRESS                               |
+|                     |          |         | subnet                                   |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| ipstack             | scan     | X       | Query IPStack's API for GeoIP            | passive,safe                            | GEOLOCATION                              |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| leakix              | scan     |         | Query leakix.net for subdomains          | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| massdns             | scan     |         | Brute-force subdomains with massdns      | aggressive,brute-                       | DNS_NAME                                 |
+|                     |          |         | (highly effective)                       | force,passive,slow,subdomain-enum       |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| otx                 | scan     |         | Query otx.alienvault.com for subdomains  | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| passivetotal        | scan     | X       | Query the PassiveTotal API for           | passive,safe,subdomain-enum             | DNS_NAME                                 |
+|                     |          |         | subdomains                               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| pgp                 | scan     |         | Query common PGP servers for email       | email-enum,passive,safe                 | EMAIL_ADDRESS                            |
+|                     |          |         | addresses                                |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| rapiddns            | scan     |         | Query rapiddns.io for subdomains         | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| riddler             | scan     |         | Query riddler.io for subdomains          | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| securitytrails      | scan     | X       | Query the SecurityTrails API for         | passive,safe,subdomain-enum             | DNS_NAME                                 |
+|                     |          |         | subdomains                               |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| shodan_dns          | scan     | X       | Query Shodan for subdomains              | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| skymem              | scan     |         | Query skymem.info for email addresses    | email-enum,passive,safe                 | EMAIL_ADDRESS                            |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| sublist3r           | scan     |         | Query sublist3r's API for subdomains     | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| threatminer         | scan     |         | Query threatminer's API for subdomains   | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| urlscan             | scan     |         | Query urlscan.io for subdomains          | passive,safe,subdomain-enum             | DNS_NAME,URL_UNVERIFIED                  |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| viewdns             | scan     |         | Query viewdns.info's reverse whois for   | affiliates,passive,safe                 | DNS_NAME                                 |
+|                     |          |         | related domains                          |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| virustotal          | scan     | X       | Query VirusTotal's API for subdomains    | passive,safe,subdomain-enum             | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| wayback             | scan     |         | Query archive.org's API for subdomains   | passive,safe,subdomain-enum             | DNS_NAME,URL_UNVERIFIED                  |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| zoomeye             | scan     | X       | Query ZoomEye's API for subdomains       | affiliates,passive,safe,subdomain-enum  | DNS_NAME                                 |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| asset_inventory     | output   |         | Output to an asset inventory style       |                                         |                                          |
+|                     |          |         | flattened CSV file                       |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| csv                 | output   |         | Output to CSV                            |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| http                | output   |         | Output to HTTP                           |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| human               | output   |         | Output to text                           |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| json                | output   |         | Output to JSON                           |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| neo4j               | output   |         | Output to Neo4j                          |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| python              | output   |         | Output via Python API                    |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| websocket           | output   |         | Output to websockets                     |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| aggregate           | internal |         | Report on scan statistics                | passive,safe                            | SUMMARY                                  |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| excavate            | internal |         | Passively extract juicy tidbits from     | passive                                 | URL_UNVERIFIED                           |
+|                     |          |         | scan data                                |                                         |                                          |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+| speculate           | internal |         | Derive certain event types from others   | passive                                 | DNS_NAME,FINDING,IP_ADDRESS,OPEN_TCP_POR |
+|                     |          |         | by common sense                          |                                         | T                                        |
++---------------------+----------+---------+------------------------------------------+-----------------------------------------+------------------------------------------+
+
+### MODULE OPTIONS ###
+
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| Option                                   | Type   | Default                                  | Description                              |
++==========================================+========+==========================================+==========================================+
+| modules.bucket_aws.max_threads           | int    | 10                                       | Maximum number of threads for HTTP       |
+|                                          |        |                                          | requests                                 |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_aws.permutations          | bool   | False                                    | Whether to try permutations              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_azure.max_threads         | int    | 10                                       | Maximum number of threads for HTTP       |
+|                                          |        |                                          | requests                                 |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_azure.permutations        | bool   | False                                    | Whether to try permutations              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_digitalocean.max_threads  | int    | 10                                       | Maximum number of threads for HTTP       |
+|                                          |        |                                          | requests                                 |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_digitalocean.permutations | bool   | False                                    | Whether to try permutations              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_gcp.max_threads           | int    | 10                                       | Maximum number of threads for HTTP       |
+|                                          |        |                                          | requests                                 |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bucket_gcp.permutations          | bool   | False                                    | Whether to try permutations              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.cookie_brute.wordlist            | str    | https://raw.githubusercontent.com/PortSw | Define the wordlist to be used to derive |
+|                                          |        | igger/param-                             | cookies                                  |
+|                                          |        | miner/master/resources/params            |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.dnszonetransfer.timeout          | int    | 10                                       | Max seconds to wait before timing out    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf.wordlist                    | str    | https://raw.githubusercontent.com/daniel | Specify wordlist to use when finding     |
+|                                          |        | miessler/SecLists/master/Discovery/Web-  | directories                              |
+|                                          |        | Content/raft-small-directories.txt       |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf.lines                       | int    | 5000                                     | take only the first N lines from the     |
+|                                          |        |                                          | wordlist when finding directories        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf.max_depth                   | int    | 0                                        | the maxium directory depth to attempt to |
+|                                          |        |                                          | solve                                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf.version                     | str    | 1.5.0                                    | ffuf version                             |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf.extensions                  | str    |                                          | Optionally include a list of extensions  |
+|                                          |        |                                          | to extend the keyword with (comma        |
+|                                          |        |                                          | separated)                               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf_shortnames.wordlist         | str    | https://raw.githubusercontent.com/daniel | Specify wordlist to use when finding     |
+|                                          |        | miessler/SecLists/master/Discovery/Web-  | directories                              |
+|                                          |        | Content/raft-large-words.txt             |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf_shortnames.lines            | int    | 20000                                    | take only the first N lines from the     |
+|                                          |        |                                          | wordlist when finding directories        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf_shortnames.max_depth        | int    | 1                                        | the maxium directory depth to attempt to |
+|                                          |        |                                          | solve                                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf_shortnames.version          | str    | 1.5.0                                    | ffuf version                             |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ffuf_shortnames.extensions       | str    |                                          | Optionally include a list of extensions  |
+|                                          |        |                                          | to extend the keyword with (comma        |
+|                                          |        |                                          | separated)                               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.getparam_brute.wordlist          | str    | https://raw.githubusercontent.com/PortSw | Define the wordlist to be used to derive |
+|                                          |        | igger/param-                             | GET params                               |
+|                                          |        | miner/master/resources/params            |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.version                | str    | 2.4.2                                    | gowitness version                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.threads                | int    | 4                                        | threads used to run                      |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.timeout                | int    | 10                                       | preflight check timeout                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.resolution_x           | int    | 1440                                     | screenshot resolution x                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.resolution_y           | int    | 900                                      | screenshot resolution y                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.gowitness.output_path            | str    |                                          | where to save screenshots                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.header_brute.wordlist            | str    | https://raw.githubusercontent.com/PortSw | Define the wordlist to be used to derive |
+|                                          |        | igger/param-                             | headers                                  |
+|                                          |        | miner/master/resources/headers           |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.httpx.in_scope_only              | bool   | True                                     | Only visit web resources that are in     |
+|                                          |        |                                          | scope.                                   |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.httpx.version                    | str    | 1.2.5                                    | httpx version                            |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.httpx.max_response_size          | int    | 5242880                                  | Max response size in bytes               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.iis_shortnames.detect_only       | bool   | True                                     | Only detect the vulnerability and do not |
+|                                          |        |                                          | run the shortname scanner                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.iis_shortnames.threads           | int    | 8                                        | the number of threads to run             |
+|                                          |        |                                          | concurrently when executing the IIS      |
+|                                          |        |                                          | shortname scanner                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.naabu.ports                      | str    |                                          | ports to scan                            |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.naabu.top_ports                  | int    | 100                                      | top ports to scan                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.naabu.version                    | str    | 2.1.1                                    | naabu version                            |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ntlm.max_threads                 | int    | 10                                       | Maximum concurrent requests              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ntlm.try_all                     | bool   | False                                    | Try every NTLM endpoint                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.version                   | str    | 2.7.9                                    | nuclei version                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.tags                      | str    |                                          | execute a subset of templates that       |
+|                                          |        |                                          | contain the provided tags                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.templates                 | str    |                                          | template or template directory paths to  |
+|                                          |        |                                          | include in the scan                      |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.severity                  | str    |                                          | Filter based on severity field available |
+|                                          |        |                                          | in the template.                         |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.ratelimit                 | int    | 150                                      | maximum number of requests to send per   |
+|                                          |        |                                          | second (default 150)                     |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.concurrency               | int    | 25                                       | maximum number of templates to be        |
+|                                          |        |                                          | executed in parallel (default 25)        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.mode                      | str    | severe                                   | technology | severe | manual | budget.   |
+|                                          |        |                                          | Technology: Only activate based on       |
+|                                          |        |                                          | technology events that match nuclei tags |
+|                                          |        |                                          | (nuclei -as mode). Severe (DEFAULT):     |
+|                                          |        |                                          | Only critical and high severity          |
+|                                          |        |                                          | templates without intrusive. Manual:     |
+|                                          |        |                                          | Fully manual settings. Budget: Limit     |
+|                                          |        |                                          | Nuclei to a specified number of HTTP     |
+|                                          |        |                                          | requests                                 |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.etags                     | str    | intrusive                                | tags to exclude from the scan            |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.nuclei.budget                    | int    | 1                                        | Used in budget mode to set the number of |
+|                                          |        |                                          | requests which will be alloted to the    |
+|                                          |        |                                          | nuclei scan                              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.sslcert.timeout                  | float  | 5.0                                      | Socket connect timeout in seconds        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.telerik.exploit_RAU_crypto       | bool   | False                                    | Attempt to confirm any RAU AXD           |
+|                                          |        |                                          | detections are vulnerable                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.url_manipulation.allow_redirects | bool   | True                                     | Allowing redirects will sometimes create |
+|                                          |        |                                          | false positives. Disallowing will        |
+|                                          |        |                                          | sometimes create false negatives.        |
+|                                          |        |                                          | Allowed by default.                      |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.vhost.subdomain_wordlist         | str    | https://raw.githubusercontent.com/daniel | Wordlist containing subdomains           |
+|                                          |        | miessler/SecLists/master/Discovery/DNS/s |                                          |
+|                                          |        | ubdomains-top1million-5000.txt           |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.vhost.force_basehost             | str    |                                          | Use a custom base host (e.g.             |
+|                                          |        |                                          | evilcorp.com) instead of the default     |
+|                                          |        |                                          | behavior of using the current URL        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bevigil.api_key                  | str    |                                          | BeVigil OSINT API Key                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.bevigil.urls                     | bool   | False                                    | Emit URLs in addition to DNS_NAMEs       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.binaryedge.api_key               | str    |                                          | BinaryEdge API key                       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.binaryedge.max_records           | int    | 1000                                     | Limit results to help prevent exceeding  |
+|                                          |        |                                          | API quota                                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.builtwith.api_key                | str    |                                          | Builtwith API key                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.builtwith.redirects              | bool   | True                                     | Also look up inbound and outbound        |
+|                                          |        |                                          | redirects                                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.c99.api_key                      | str    |                                          | c99.nl API key                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.censys.api_id                    | str    |                                          | Censys.io API ID                         |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.censys.api_secret                | str    |                                          | Censys.io API Secret                     |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.censys.max_records               | int    | 1000                                     | Limit results to help prevent exceeding  |
+|                                          |        |                                          | API quota                                |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.fullhunt.api_key                 | str    |                                          | FullHunt API Key                         |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.github.api_key                   | str    |                                          | Github token                             |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.hunterio.api_key                 | str    |                                          | Hunter.IO API key                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ipneighbor.num_bits              | int    | 4                                        | Netmask size (in CIDR notation) to       |
+|                                          |        |                                          | check. Default is 4 bits (16 hosts)      |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.ipstack.api_key                  | str    |                                          | IPStack GeoIP API Key                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.massdns.wordlist                 | str    | https://raw.githubusercontent.com/daniel | Subdomain wordlist URL                   |
+|                                          |        | miessler/SecLists/master/Discovery/DNS/s |                                          |
+|                                          |        | ubdomains-top1million-5000.txt           |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.massdns.max_resolvers            | int    | 500                                      | Number of concurrent massdns resolvers   |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.passivetotal.username            | str    |                                          | RiskIQ Username                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.passivetotal.api_key             | str    |                                          | RiskIQ API Key                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.pgp.search_urls                  | list   | ['https://keyserver.ubuntu.com/pks/looku | PGP key servers to search                |
+|                                          |        | p?fingerprint=on&op=vindex&search=<query |                                          |
+|                                          |        | >', 'http://the.earth.li:11371/pks/looku |                                          |
+|                                          |        | p?fingerprint=on&op=vindex&search=<query |                                          |
+|                                          |        | >']                                      |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.securitytrails.api_key           | str    |                                          | SecurityTrails API key                   |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.shodan_dns.api_key               | str    |                                          | Shodan API key                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.urlscan.urls                     | bool   | False                                    | Emit URLs in addition to DNS_NAMEs       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.virustotal.api_key               | str    |                                          | VirusTotal API Key                       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.wayback.urls                     | bool   | False                                    | emit URLs in addition to DNS_NAMEs       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.wayback.garbage_threshold        | int    | 10                                       | Dedupe similar urls if they are in a     |
+|                                          |        |                                          | group of this size or higher (lower      |
+|                                          |        |                                          | values == less garbage data)             |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.zoomeye.api_key                  | str    |                                          | ZoomEye API key                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.zoomeye.max_pages                | int    | 20                                       | How many pages of results to fetch       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| modules.zoomeye.include_related          | bool   | False                                    | Include domains which may be related to  |
+|                                          |        |                                          | the target                               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.asset_inventory.output_fi | str    |                                          | Set a custom output file                 |
+| le                                       |        |                                          |                                          |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.csv.output_file           | str    |                                          | Output to CSV file                       |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.url                  | str    |                                          | Web URL                                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.method               | str    | POST                                     | HTTP method                              |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.bearer               | str    |                                          | Authorization Bearer token               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.username             | str    |                                          | Username (basic auth)                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.password             | str    |                                          | Password (basic auth)                    |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.http.timeout              | int    | 10                                       | HTTP timeout                             |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.human.output_file         | str    |                                          | Output to file                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.human.console             | bool   | True                                     | Output to console                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.json.output_file          | str    |                                          | Output to file                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.json.console              | bool   | False                                    | Output to console                        |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.neo4j.uri                 | str    | bolt://localhost:7687                    | Neo4j server + port                      |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.neo4j.username            | str    | neo4j                                    | Neo4j username                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.neo4j.password            | str    | bbotislife                               | Neo4j password                           |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.websocket.url             | str    |                                          | Web URL                                  |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| output_modules.websocket.token           | str    |                                          | Authorization Bearer token               |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+
+| internal_modules.speculate.max_hosts     | int    | 65536                                    | Max number of IP_RANGE hosts to convert  |
+|                                          |        |                                          | into IP_ADDRESS events                   |
++------------------------------------------+--------+------------------------------------------+------------------------------------------+

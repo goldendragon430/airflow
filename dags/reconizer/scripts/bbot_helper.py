@@ -59,7 +59,7 @@ def run_scan_cli(domain: str, bbot_module: str, api_config: str = None) -> Tuple
         command += add_api_key_to_config(api_config)
 
     try:
-        subprocess.check_call(command, timeout=180)
+        subprocess.check_call(command, timeout=360)
         return True, f'{name}/output.json'
     except Exception as err:
         return False, str(err)
@@ -233,7 +233,7 @@ def read_modules(filepath: str) -> list:
 def run_all_modules(domain: str) -> list:
     config = dict(output_dir=os.getcwd(), ignore_failed_deps=True)
     scan_name = "all_modules"
-    bbot_modules = read_modules("dags/reconizer/services/bbot_modules.json")
+    bbot_modules = read_modules("bbot_modules.json")
     scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_modules, name=scan_name,
                    force_start=True)
     for event in scan.start():
