@@ -2,9 +2,12 @@
     This file contains all modules associated with bbot osint tool
 """
 import itertools
+import json
+from typing import List
 
-from reconizer.scripts.bbot_helper import cloud_buckets_entrypoint_internal, emails_entrypoint_internal, \
-    run_all_modules, run_bbot_module, subdomains_entrypoint_internal
+from reconizer.scripts.bbot_helper import clean_scan_folder, cloud_buckets_entrypoint_internal, \
+    emails_entrypoint_internal, \
+    parse_cloud_buckets, run_bbot_module, run_scan_cli, subdomains_entrypoint_internal
 
 
 def shodan_dns_entrypoint(domain: str, api_key: str) -> dict:
@@ -28,13 +31,24 @@ def cloud_buckets_entrypoint(domain: str) -> dict:
     return cloud_buckets_entrypoint_internal(domain=domain)
 
 
-def ips_entrypoint(domain: str) -> dict:
-    events = run_all_modules(domain)
-
+def ips_from_events(events: List[dict]) -> list:
     ips_list = list()
     for event in events:
         if "ipv4" in event["tags"] or "ipv6" in event["tags"]:
             ips_list.append(event["resolved_hosts"])
 
     ips = list(itertools.chain.from_iterable(ips_list))
-    return dict(error=None, response=ips)
+    return ips
+
+
+def all_modules_bbot_cli_entrypoint(domain: str):
+    with open("bbot_modules.json", "r") as file:
+        mods = json.loads(file.read()).keys()
+        events = run_scan_cli(domain=domain, bbot_modules=list(mods))
+
+    ips = ips_from_events(events)
+    buckets = parse_cloud_buckets(events)
+    result = dict(ips=ips, buckets=buckets)
+    name = "bbot_all_modules_scan"
+    clean_scan_folder(name)
+    return dict(error=None, response=result)

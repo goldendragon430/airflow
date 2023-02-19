@@ -1,7 +1,8 @@
 import json
 import os
 import subprocess
-from typing import Tuple
+import time
+from typing import List
 
 import pandas as pd
 from bbot.scanner.scanner import Scanner
@@ -42,27 +43,22 @@ def get_scan_result(filepath: str, mode: str):
         return pd.read_csv(filepath)
 
 
-def run_scan_cli(domain: str, bbot_module: str, api_config: str = None) -> Tuple[bool, str]:
-    """_summary_
-    args:
-        domain: domain to scan, preferable full like http://your-site.org
-        bbot_module: module to use like sslcert, sublist3r etc'
-        api_key: if necessary
-    Returns:
-        _type_: error if any and json output of scan
-    """
+def run_scan_cli(domain: str, bbot_modules: List[str], api_config: str = None):
     output_format = "json"
-    name = f'{bbot_module}_scan'
-    command = ["bbot", "-t", domain, "-o", os.getcwd(), "-n", name, "-m", bbot_module, "-y",
-               "--ignore-failed-deps", "-om", output_format]
+    name = "bbot_all_modules_scan"
+    base_command = ["bbot", "-t", domain, "-m"]
+    format_command = ["-o", os.getcwd(), "-n", name, "-y", "--allow-deadly", "--force", "-om",
+                      output_format]
     if api_config:
-        command += add_api_key_to_config(api_config)
-
+        base_command += add_api_key_to_config(api_config)
     try:
-        subprocess.check_call(command, timeout=360)
-        return True, f'{name}/output.json'
+        bbot_command = base_command + bbot_modules + format_command
+        subprocess.run(bbot_command, timeout=360)
     except Exception as err:
-        return False, str(err)
+        return str(err)
+    else:
+        time.sleep(60)
+        return get_scan_result(f'{name}/output.json', mode="json")
 
 
 def clean_scan_folder(scan_folder: str) -> None:
@@ -191,10 +187,8 @@ def parse_cloud_buckets(events: list) -> list:
     buckets_urls = []
     for event in events:
         if event.get("type", "") == "STORAGE_BUCKET":
-            try:
-                buckets_urls.append(event["data"]["url"])
-            except KeyError as err:
-                continue
+            filtered = {"url": event["data"].get("url", ""), "hosts": event["resolved_hosts"], "tags": event["tags"]}
+            buckets_urls.append(filtered)
 
     return buckets_urls
 

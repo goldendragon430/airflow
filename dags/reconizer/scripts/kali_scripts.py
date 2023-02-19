@@ -11,9 +11,11 @@ kali_machine_conn = KaliMachineConn(retries=3, interval=5)
 
 
 def harvester_entrypoint(domain: str) -> dict:
-    command = f'theHarvester -d {domain} -l 100 -b all'
+    filename = "harvester_result"
+    command = f'theHarvester -d {domain} -l 250 -f {filename} -b all'
     std_out, std_err = kali_machine_conn.run_command(command)
-    return dict(error=std_err, response=std_out)
+    result = kali_machine_conn.sftp_scan_results(f'{filename}.json', mode="json")
+    return dict(error=std_err, response=result)
 
 
 def skip_fish_entrypoint(domain) -> dict:
@@ -44,7 +46,7 @@ def wafw00f_entrypoint(domain: str) -> dict:
     std_out, std_err = kali_machine_conn.run_command(command)
     if not std_err:
         result = kali_machine_conn.sftp_scan_results(filename, mode="json")
-        wafs = [item["firewall"] for item in result if item.get("detected", False)]
+        wafs = [item for item in result if item.get("detected", False)]
         kali_machine_conn.clean_file_output(filename)
         return dict(error=None, response=wafs)
     else:
