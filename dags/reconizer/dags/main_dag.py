@@ -4,7 +4,7 @@ from airflow.decorators import dag
 from airflow.models import Variable
 
 from reconizer.common.raw_data_operator import RawDataOperator
-from reconizer.scripts.api_scripts import apollo_extract_emails, viewdns_subdomains
+from reconizer.scripts.api_scripts import apollo_extract_emails, viewdns_subdomains, xforce_entrypoint
 from reconizer.scripts.bbot_scripts import cloud_buckets_entrypoint, \
     emails_entrypoint, \
     subdomains_flag_entrypoint
@@ -28,6 +28,10 @@ def main_dag(**kwargs):
 
     # cloud buckets
     RawDataOperator(task_id="cloud_buckets", fn=cloud_buckets_entrypoint, op_args=["provide domain in your conf"])
+
+    # malwares
+    RawDataOperator(task_id="xforce", fn=xforce_entrypoint,
+                    op_args=["domain conf", secrets.get("xforce_key"), secrets.get("xforce_pass")])
 
     # ips
 

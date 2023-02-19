@@ -222,3 +222,25 @@ def cloud_buckets_entrypoint_internal(domain: str) -> dict:
     result = {"error": "found no buckets", "response": []}
     print(json.dumps(result))
     return result
+
+
+def read_modules(filepath: str) -> list:
+    with open(filepath, mode="r") as file:
+        mods = json.loads(file.read())
+        return list(mods.keys())
+
+
+def run_all_modules(domain: str) -> dict:
+    config = dict(output_dir=os.getcwd(), ignore_failed_deps=True)
+    scan_name = "all_modules"
+    bbot_modules = read_modules("../services/bbot_modules.json")
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_modules, name=scan_name,
+                   force_start=True)
+    for event in scan.start():
+        print(event)
+
+    if scan.status == "FINISHED":
+        events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        return events
+    else:
+        return {}

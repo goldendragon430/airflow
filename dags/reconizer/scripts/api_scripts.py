@@ -120,14 +120,10 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
     auth = HTTPBasicAuth(api_key, api_pass)
     base_api_url = "https://api.xforce.ibmcloud.com"
     malware_url = f'{base_api_url}/url/malware/{domain}'
-    dns_url = f'{base_api_url}/resolve/{domain}'
 
     try:
         malware_response = requests.get(malware_url, auth=auth, timeout=60).json()
-        dns_response = requests.get(dns_url, auth=auth, timeout=60).json()
-        malwares = dict((k, malware_response[k]) for k in ["count", "malware"])
-        output = dict(alwares=malwares, dns=dns_response)
-        return dict(error=None, response=output)
+        return dict(error=None, response=malware_response["malware"])
     except Exception as err:
         return dict(error=err, response=None)
 
