@@ -37,7 +37,7 @@ def apollo_entrypoint(domain: str, api_key: str) -> dict:
         people.append(persons)
 
     result = list(itertools.chain.from_iterable(people))
-    return dict(error=None, response=list(itertools.chain.from_iterable(people)))
+    return dict(error=None, response=result)
 
 
 def signal_hire_entrypoint(search_items: List[str], api_key: str) -> dict:

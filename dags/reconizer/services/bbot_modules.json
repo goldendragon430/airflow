@@ -238,5 +238,94 @@
       "FINDING"
     ],
     "needs_api": false
+  },
+  "nuclei": {
+    "flags": [
+      "active",
+      "aggressive",
+      "deadly",
+      "web-advanced"
+    ],
+    "event_types": [
+      "VULNERABILITY",
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "smuggler": {
+    "flags": [
+      "active",
+      "aggressive",
+      "brute-force",
+      "web-advanced",
+      "slow"
+    ],
+    "event_types": [
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "sslcert": {
+    "flags": [
+      "active",
+      "affiliates",
+      "subdomain-enum",
+      "email-enum"
+    ],
+    "event_types": [
+      "DNS_NAME",
+      "EMAIL_ADDRESS"
+    ],
+    "needs_api": false
+  },
+  "telerik": {
+    "flags": [
+      "active",
+      "aggressive",
+      "slow",
+      "web-basic"
+    ],
+    "event_types": [
+      "FINDING",
+      "VULNERABILITY"
+    ],
+    "needs_api": false
+  },
+  "url_manipulation": {
+    "flags": [
+      "active",
+      "aggressive",
+      "web-advanced"
+    ],
+    "event_types": [
+      "FINDING"
+    ],
+    "needs_api": false
+  },
+  "vhost": {
+    "flags": [
+      "active",
+      "aggressive",
+      "web-advanced",
+      "slow",
+      "deadly",
+      "brute-force"
+    ],
+    "event_types": [
+      "DNS_NAME",
+      "VHOST"
+    ],
+    "needs_api": false
+  },
+  "wappalyzer": {
+    "flags": [
+      "active",
+      "safe",
+      "web-basic"
+    ],
+    "event_types": [
+      "TECHNOLOGY"
+    ],
+    "needs_api": false
   }
 }
