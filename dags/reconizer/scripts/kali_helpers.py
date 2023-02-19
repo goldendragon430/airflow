@@ -2,10 +2,11 @@
     All function related to kali tools
     Name convention : (kali-tool-name)_(function-name)
 """
+import itertools
 from typing import List
 
 
-def wapiti_extract_vulnerabilites_and_anomalies(data: dict) -> dict:
+def wapiti_extract_vulnerabilites_and_anomalies(content: dict) -> dict:
     """_summary_
     Args:
         data (dict): wapiti report as json
@@ -13,8 +14,10 @@ def wapiti_extract_vulnerabilites_and_anomalies(data: dict) -> dict:
     Returns:
         dict: vulnerabiilites found
     """
-    vulnerabilites = dict((k, v) for k, v in data["vulnerabilities"].items() if len(v) > 0)
-    anomalies = dict((k, v) for k, v in data["anomalies"].items() if len(v) > 0)
+    res_vuln = [v for v in content["vulnerabilities"].values() if len(v) > 0]
+    vulnerabilites = list(itertools.chain.from_iterable(res_vuln))
+    res_anom = [v for v in content["anomalies"].values() if len(v) > 0]
+    anomalies = list(itertools.chain.from_iterable(res_anom))
     return dict(vulnerabilites=vulnerabilites, anomalies=anomalies)
 
 

@@ -1,6 +1,7 @@
 """
     This file contains all modules that would collect data directly from api without connecting to new machines
 """
+import itertools
 import json
 import socket
 from typing import List
@@ -9,8 +10,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from reconizer.scripts.api_helpers import apollo_pagination
-from reconizer.services.paginationHandler import post_pagination, wrapped_get_request, wrapped_post_request
-from reconizer.services.user_defined_exceptions import PartiallyDataError
+from reconizer.services.paginationHandler import wrapped_get_request, wrapped_post_request
 
 
 def have_i_been_pawned_entrypoint(domain: str, api_key: str) -> dict:
@@ -32,25 +32,12 @@ def have_i_been_pawned_entrypoint(domain: str, api_key: str) -> dict:
 
 
 def apollo_entrypoint(domain: str, api_key: str) -> dict:
-    url = "https://api.apollo.io/v1/mixed_people/search"
-    data = {"q_organization_domains": domain, "api_key": api_key, "page": 1}
-    field_pagination = "pagination.total_pages"
-    try:
-        responses = post_pagination(url=url, data=data, field_pagination=field_pagination)
-    except PartiallyDataError as err:
-        return dict(error=err, response=None)
-    except KeyError as key_error:
-        return dict(error=key_error, response=None)
-    else:
-        return dict(error=None, response=responses)
+    people = list()
+    for persons in apollo_pagination(domain, api_key):
+        people.append(persons)
 
-
-def apollo_extract_emails(domain: str, api_key: str) -> dict:
-    emails = set()
-    for mails in apollo_pagination(domain, api_key):
-        emails.update(set(mails))
-
-    return dict(error=None, response=list(emails))
+    result = list(itertools.chain.from_iterable(people))
+    return dict(error=None, response=list(itertools.chain.from_iterable(people)))
 
 
 def signal_hire_entrypoint(search_items: List[str], api_key: str) -> dict:

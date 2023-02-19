@@ -36,5 +36,7 @@ def apollo_pagination(domain: str, api_key: str) -> list:
         page = session.post(url, data=data).json()
         totalP = page["pagination"]["total_pages"]
         currP += 1
-        emails = [person["email"] for person in page["people"] if person.get("email_status", "") == "verified"]
-        yield emails
+        people = []
+        for person in page["people"]:
+            people.append({k: v for k, v in person.items() if v is not None})
+        yield people
