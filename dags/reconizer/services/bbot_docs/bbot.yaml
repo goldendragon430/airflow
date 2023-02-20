@@ -18,14 +18,14 @@ modules:
     mode: severe
     etags: intrusive
     budget: 1
-  asn: {}
-  affiliates: {}
+  asn: { }
+  affiliates: { }
   urlscan:
     urls: false
-  host_header: {}
+  host_header: { }
   getparam_brute:
     wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
-  dnsdumpster: {}
+  dnsdumpster: { }
   bevigil:
     api_key: ''
     urls: false
@@ -36,15 +36,15 @@ modules:
     api_key: ''
   pgp:
     search_urls:
-    - https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=vindex&search=<query>
-    - http://the.earth.li:11371/pks/lookup?fingerprint=on&op=vindex&search=<query>
-  azure_tenant: {}
+      - https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=vindex&search=<query>
+      - http://the.earth.li:11371/pks/lookup?fingerprint=on&op=vindex&search=<query>
+  azure_tenant: { }
   virustotal:
     api_key: ''
   shodan_dns:
     api_key: ''
-  rapiddns: {}
-  dnscommonsrv: {}
+  rapiddns: { }
+  dnscommonsrv: { }
   binaryedge:
     api_key: ''
     max_records: 1000
@@ -54,14 +54,14 @@ modules:
   ntlm:
     max_threads: 10
     try_all: false
-  generic_ssrf: {}
+  generic_ssrf: { }
   httpx:
     in_scope_only: true
     version: 1.2.5
     max_response_size: 5242880
   securitytrails:
     api_key: ''
-  viewdns: {}
+  viewdns: { }
   url_manipulation:
     allow_redirects: true
   dnszonetransfer:
@@ -75,16 +75,16 @@ modules:
   builtwith:
     api_key: ''
     redirects: true
-  certspotter: {}
+  certspotter: { }
   sslcert:
     timeout: 5.0
   cookie_brute:
     wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
-  hackertarget: {}
+  hackertarget: { }
   c99:
     api_key: ''
-  crt: {}
-  hunt: {}
+  crt: { }
+  hunt: { }
   naabu:
     ports: ''
     top_ports: 100
@@ -92,10 +92,10 @@ modules:
   bucket_digitalocean:
     max_threads: 10
     permutations: false
-  skymem: {}
+  skymem: { }
   hunterio:
     api_key: ''
-  sublist3r: {}
+  sublist3r: { }
   massdns:
     wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
     max_resolvers: 500
@@ -104,21 +104,21 @@ modules:
     garbage_threshold: 10
   ipstack:
     api_key: ''
-  emailformat: {}
-  bypass403: {}
+  emailformat: { }
+  bypass403: { }
   bucket_azure:
     max_threads: 10
     permutations: false
-  leakix: {}
-  crobat: {}
-  threatminer: {}
+  leakix: { }
+  crobat: { }
+  threatminer: { }
   telerik:
     exploit_RAU_crypto: false
-  riddler: {}
+  riddler: { }
   bucket_gcp:
     max_threads: 10
     permutations: false
-  otx: {}
+  otx: { }
   gowitness:
     version: 2.4.2
     threads: 4
@@ -133,7 +133,7 @@ modules:
   iis_shortnames:
     detect_only: true
     threads: 8
-  badsecrets: {}
+  badsecrets: { }
   censys:
     api_id: ''
     api_secret: ''
@@ -142,11 +142,11 @@ modules:
     api_key: ''
     max_pages: 20
     include_related: false
-  smuggler: {}
+  smuggler: { }
   header_brute:
     wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/headers
-  anubisdb: {}
-  wappalyzer: {}
+  anubisdb: { }
+  wappalyzer: { }
 output_modules:
   neo4j:
     uri: bolt://localhost:7687
@@ -166,7 +166,7 @@ output_modules:
     timeout: 10
   csv:
     output_file: ''
-  python: {}
+  python: { }
   json:
     output_file: ''
     console: false
@@ -174,8 +174,8 @@ output_modules:
     url: ''
     token: ''
 internal_modules:
-  aggregate: {}
-  excavate: {}
+  aggregate: { }
+  excavate: { }
   speculate:
     max_hosts: 65536
 home: /Users/ryanwright/.bbot
@@ -199,7 +199,7 @@ web_spider_distance: 0
 web_spider_depth: 1
 dns_timeout: 5
 dns_retries: 1
-dns_wildcard_ignore: []
+dns_wildcard_ignore: [ ]
 dns_wildcard_tests: 5
 dns_abort_threshold: 10
 dns_filter_ptrs: true
@@ -209,33 +209,33 @@ keep_scans: 20
 user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
   like Gecko) Chrome/104.0.5112.79 Safari/537.36
 url_extension_blacklist:
-- png
-- jpg
-- bmp
-- ico
-- jpeg
-- gif
-- svg
-- css
-- woff
-- woff2
-- ttf
-- mp3
-- m4a
-- wav
-- flac
-- mp4
-- mkv
-- avi
-- wmv
-- mov
-- flv
-- webm
+  - png
+  - jpg
+  - bmp
+  - ico
+  - jpeg
+  - gif
+  - svg
+  - css
+  - woff
+  - woff2
+  - ttf
+  - mp3
+  - m4a
+  - wav
+  - flac
+  - mp4
+  - mkv
+  - avi
+  - wmv
+  - mov
+  - flv
+  - webm
 url_extension_httpx_only:
-- js
+  - js
 omit_event_types:
-- HTTP_RESPONSE
-- URL_UNVERIFIED
+  - HTTP_RESPONSE
+  - URL_UNVERIFIED
 agent_url: ''
 agent_token: ''
 interactsh_server: null
@@ -244,7 +244,7 @@ interactsh_disable: false
 retry_deps: false
 force_deps: false
 no_deps: false
-ignore_failed_deps: false
+ignore_failed_deps: True
 debug: false
 silent: false
 

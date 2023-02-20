@@ -1,0 +1,22 @@
+{
+  "flags": [
+    "active",
+    "affiliates",
+    "aggressive",
+    "brute-force",
+    "cloud-enum",
+    "deadly",
+    "email-enum",
+    "iis-shortnames",
+    "passive",
+    "portscan",
+    "report",
+    "safe",
+    "slow",
+    "subdomain-enum",
+    "web-advanced",
+    "web-basic",
+    "web-paramminer",
+    "web-screenshots"
+  ]
+}

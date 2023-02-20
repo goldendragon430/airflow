@@ -1,10 +1,12 @@
+import io
 import json
+import time
 from typing import Tuple
+
 import boto3
 import paramiko
-import time
-import io
 from bs4 import BeautifulSoup
+
 from reconizer.services.services import get_secret
 
 
@@ -29,6 +31,7 @@ class KaliMachineConn:
         with ftp_client.open(filepath, "r") as html_file:
             index = html_file.read()
             return BeautifulSoup(index, 'lxml')
+
     @staticmethod
     def read_json_file_in_session(ftp_client, filepath: str) -> dict:
         with ftp_client.open(filepath, mode="r") as file:
@@ -38,7 +41,7 @@ class KaliMachineConn:
         self.pem_key = get_secret("prod/ec2_kali/ssh")
         self.retries = retries
         self.wait_interval = interval
-        self.username = "kali"
+        self.username = "root"
 
     def ssh_connect_with_retry(self, ssh, ip_address, pem_key, retries):
         if retries > self.retries:

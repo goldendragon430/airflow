@@ -1,7 +1,8 @@
 import json
 import os
 import subprocess
-from typing import Tuple
+import time
+from typing import List
 
 import pandas as pd
 from bbot.scanner.scanner import Scanner
@@ -32,42 +33,39 @@ def run_scan(domain, **kwargs):
 
 
 def get_scan_result(filepath: str, mode: str):
+    path = os.path.join(os.getcwd(), filepath)
     if mode == "json":
         events = []
-        with open(filepath, mode="r") as file:
+        with open(path, mode="r") as file:
             for line in file:
                 events.append(json.loads(line))
         return events
     elif mode == "csv":
-        return pd.read_csv(filepath)
+        return pd.read_csv(path)
 
 
-def run_scan_cli(domain: str, bbot_module: str, api_config: str = None) -> Tuple[bool, str]:
-    """_summary_
-    args:
-        domain: domain to scan, preferable full like http://your-site.org
-        bbot_module: module to use like sslcert, sublist3r etc'
-        api_key: if necessary
-    Returns:
-        _type_: error if any and json output of scan
-    """
+def run_scan_cli(domain: str, bbot_modules: List[str], api_config: str = None):
     output_format = "json"
-    name = f'{bbot_module}_scan'
-    command = ["bbot", "-t", domain, "-o", os.getcwd(), "-n", name, "-m", bbot_module, "-y",
-               "--ignore-failed-deps", "-om", output_format]
+    name = "bbot_all_modules_scan"
+    base_command = ["bbot", "-t", domain, "-m"]
+    format_command = ["-o", os.getcwd(), "-n", name, "-y", "--ignore-failed-deps", "-om", output_format]
     if api_config:
-        command += add_api_key_to_config(api_config)
-
+        base_command += add_api_key_to_config(api_config)
     try:
-        subprocess.check_call(command, timeout=180)
-        return True, f'{name}/output.json'
+        bbot_command = base_command + bbot_modules + format_command
+        print(bbot_command)
+        result = subprocess.run(bbot_command, capture_output=True)
     except Exception as err:
-        return False, str(err)
+        return str(err)
+    else:
+        time.sleep(60)
+        return result.stderr.decode("utf-8"), result.stdout.decode("utf-8")
 
 
 def clean_scan_folder(scan_folder: str) -> None:
+    path = os.path.join(os.getcwd(), scan_folder)
     try:
-        subprocess.run(["rm", "-r", scan_folder], timeout=5, check=True)
+        subprocess.run(["rm", "-r", path], timeout=5, check=True)
     except subprocess.CalledProcessError as err:
         pass
     except OSError as err:
@@ -191,10 +189,8 @@ def parse_cloud_buckets(events: list) -> list:
     buckets_urls = []
     for event in events:
         if event.get("type", "") == "STORAGE_BUCKET":
-            try:
-                buckets_urls.append(event["data"]["url"])
-            except KeyError as err:
-                continue
+            filtered = {"url": event["data"].get("url", ""), "hosts": event["resolved_hosts"], "tags": event["tags"]}
+            buckets_urls.append(filtered)
 
     return buckets_urls
 
@@ -230,10 +226,10 @@ def read_modules(filepath: str) -> list:
         return list(mods.keys())
 
 
-def run_all_modules(domain: str) -> dict:
+def run_all_modules(domain: str) -> list:
     config = dict(output_dir=os.getcwd(), ignore_failed_deps=True)
     scan_name = "all_modules"
-    bbot_modules = read_modules("../services/bbot_modules.json")
+    bbot_modules = read_modules("bbot_modules.json")
     scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_modules, name=scan_name,
                    force_start=True)
     for event in scan.start():
@@ -241,6 +237,7 @@ def run_all_modules(domain: str) -> dict:
 
     if scan.status == "FINISHED":
         events = get_scan_result(f'{scan_name}/output.json', mode="json")
+        clean_scan_folder(scan_name)
         return events
     else:
-        return {}
+        return []
