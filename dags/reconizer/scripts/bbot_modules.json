@@ -146,17 +146,6 @@
     ],
     "needs_api": false
   },
-  "gowitness": {
-    "flags": [
-      "active",
-      "safe",
-      "web-screenshots"
-    ],
-    "event_types": [
-      "SCREENSHOT"
-    ],
-    "needs_api": false
-  },
   "header_brute": {
     "flags": [
       "active",

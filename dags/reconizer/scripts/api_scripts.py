@@ -110,7 +110,7 @@ def xforce_entrypoint(domain: str, api_key: str, api_pass: str) -> dict:
 
     try:
         malware_response = requests.get(malware_url, auth=auth, timeout=60).json()
-        return dict(error=None, response=malware_response["malware"])
+        return dict(error=None, response=malware_response.get("malware", []))
     except Exception as err:
         return dict(error=err, response=None)
 

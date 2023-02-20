@@ -33,37 +33,39 @@ def run_scan(domain, **kwargs):
 
 
 def get_scan_result(filepath: str, mode: str):
+    path = os.path.join(os.getcwd(), filepath)
     if mode == "json":
         events = []
-        with open(filepath, mode="r") as file:
+        with open(path, mode="r") as file:
             for line in file:
                 events.append(json.loads(line))
         return events
     elif mode == "csv":
-        return pd.read_csv(filepath)
+        return pd.read_csv(path)
 
 
 def run_scan_cli(domain: str, bbot_modules: List[str], api_config: str = None):
     output_format = "json"
     name = "bbot_all_modules_scan"
     base_command = ["bbot", "-t", domain, "-m"]
-    format_command = ["-o", os.getcwd(), "-n", name, "-y", "--allow-deadly", "--force", "-om",
-                      output_format]
+    format_command = ["-o", os.getcwd(), "-n", name, "-y", "--ignore-failed-deps", "-om", output_format]
     if api_config:
         base_command += add_api_key_to_config(api_config)
     try:
         bbot_command = base_command + bbot_modules + format_command
-        subprocess.run(bbot_command, timeout=360)
+        print(bbot_command)
+        result = subprocess.run(bbot_command, capture_output=True)
     except Exception as err:
         return str(err)
     else:
         time.sleep(60)
-        return get_scan_result(f'{name}/output.json', mode="json")
+        return result.stderr.decode("utf-8"), result.stdout.decode("utf-8")
 
 
 def clean_scan_folder(scan_folder: str) -> None:
+    path = os.path.join(os.getcwd(), scan_folder)
     try:
-        subprocess.run(["rm", "-r", scan_folder], timeout=5, check=True)
+        subprocess.run(["rm", "-r", path], timeout=5, check=True)
     except subprocess.CalledProcessError as err:
         pass
     except OSError as err:

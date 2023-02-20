@@ -14,8 +14,11 @@ def harvester_entrypoint(domain: str) -> dict:
     filename = "harvester_result"
     command = f'theHarvester -d {domain} -l 250 -f {filename} -b all'
     std_out, std_err = kali_machine_conn.run_command(command)
-    result = kali_machine_conn.sftp_scan_results(f'{filename}.json', mode="json")
-    return dict(error=std_err, response=result)
+    if not std_err:
+        result = kali_machine_conn.sftp_scan_results(f'{filename}.json', mode="json")
+        return dict(error=None, response=result)
+    else:
+        return dict(error=std_err, response=None)
 
 
 def skip_fish_entrypoint(domain) -> dict:
