@@ -12,8 +12,8 @@
 #
 #
 # @dag(dag_id="test_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
-# def main_dag(**kwargs):
+# def test_dag(**kwargs):
 #     RawDataOperator(task_id="bbot_general", fn=bbot_cli_entrypoint, op_args=[""])
 #
 #
-# Dag = main_dag()
+# Dag = test_dag()
