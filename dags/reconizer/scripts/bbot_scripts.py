@@ -2,10 +2,15 @@
     This file contains all modules associated with bbot osint tool
 """
 import itertools
+import os
 from typing import List
 
+import yaml
+from bbot.scanner import scanner
+from yaml.loader import SafeLoader
+
 from reconizer.scripts.bbot_helper import clean_scan_folder, cloud_buckets_entrypoint_internal, \
-    emails_entrypoint_internal, \
+    create_config_from_secrets, emails_entrypoint_internal, \
     get_scan_result, parse_cloud_buckets, parse_emails_result, run_bbot_module, run_scan_cli, \
     subdomains_entrypoint_internal
 
@@ -60,3 +65,29 @@ def bbot_cli_entrypoint(domain: str):
     except Exception as err:
         print(f'Error reading {domain}')
         return dict(error=str(err), response=None)
+
+
+def read_bbot_modules_yaml():
+    filepath = os.path.join(os.getcwd(), "dags/reconizer/scripts/bbot.yaml")
+    with open(filepath) as file:
+        mods = yaml.load(file, Loader=SafeLoader)
+        return list(mods["modules"].keys())
+
+
+def bbot_events_iteration(domain: str, secrets: dict, start: int, end: int):
+    config = create_config_from_secrets(secrets)
+    scan_name = "bbot_scan_general"
+    bbot_mods = read_bbot_modules_yaml()
+    mods = bbot_mods[start: min(len(bbot_mods), end)]
+    scan = scanner.Scanner(domain, config=config, output_modules=["json"], modules=mods,
+                           name=scan_name,
+                           force_start=True)
+    for event in scan.start():
+        print(event)
+
+    if scan.status == "FINISHED":
+        try:
+            events = get_scan_result(f'{scan_name}/output.json', mode="json")
+            return events
+        except Exception as err:
+            pass
