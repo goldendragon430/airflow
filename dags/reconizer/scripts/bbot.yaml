@@ -22,7 +22,7 @@ modules:
   affiliates: { }
   urlscan:
     urls: false
-  host_header: { }
+  #  host_header: { }
   getparam_brute:
     wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
   dnsdumpster: { }
@@ -54,7 +54,7 @@ modules:
   ntlm:
     max_threads: 10
     try_all: false
-  generic_ssrf: { }
+  #  generic_ssrf: { }
   httpx:
     in_scope_only: true
     version: 1.2.5
@@ -76,8 +76,8 @@ modules:
     api_key: ''
     redirects: true
   certspotter: { }
-  sslcert:
-    timeout: 5.0
+  #  sslcert:
+  #    timeout: 5.0
   cookie_brute:
     wordlist: https://raw.githubusercontent.com/PortSwigger/param-miner/master/resources/params
   hackertarget: { }
@@ -85,10 +85,10 @@ modules:
     api_key: ''
   crt: { }
   hunt: { }
-  naabu:
-    ports: ''
-    top_ports: 100
-    version: 2.1.1
+  #  naabu:
+  #    ports: ''
+  #    top_ports: 100
+  #    version: 2.1.1
   bucket_digitalocean:
     max_threads: 10
     permutations: false
@@ -96,9 +96,9 @@ modules:
   hunterio:
     api_key: ''
   sublist3r: { }
-  massdns:
-    wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
-    max_resolvers: 500
+  #  massdns:
+  #    wordlist: https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt
+  #    max_resolvers: 500
   wayback:
     urls: false
     garbage_threshold: 10
@@ -119,20 +119,20 @@ modules:
     max_threads: 10
     permutations: false
   otx: { }
-  gowitness:
-    version: 2.4.2
-    threads: 4
-    timeout: 10
-    resolution_x: 1440
-    resolution_y: 900
-    output_path: ''
+  #  gowitness:
+  #    version: 2.4.2
+  #    threads: 4
+  #    timeout: 10
+  #    resolution_x: 1440
+  #    resolution_y: 900
+  #    output_path: ''
   github:
     api_key: ''
   ipneighbor:
     num_bits: 4
-  iis_shortnames:
-    detect_only: true
-    threads: 8
+  #  iis_shortnames:
+  #    detect_only: true
+  #    threads: 8
   badsecrets: { }
   censys:
     api_id: ''

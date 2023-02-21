@@ -74,37 +74,20 @@ def read_bbot_modules_yaml():
         return list(mods["modules"].keys())
 
 
-def bbot_events_from_all_modules(domain: str, secrets: dict):
+def bbot_events_iteration(domain: str, secrets: dict, start: int, end: int):
     config = create_config_from_secrets(secrets)
     scan_name = "bbot_scan_general"
     bbot_mods = read_bbot_modules_yaml()
-    scan = scanner.Scanner(domain, config=config, output_modules=["json"], modules=bbot_mods, name=scan_name,
+    mods = bbot_mods[start: min(len(bbot_mods), end)]
+    scan = scanner.Scanner(domain, config=config, output_modules=["json"], modules=mods,
+                           name=scan_name,
                            force_start=True)
-    try:
-        for event in scan.start():
-            print(event)
-    except Exception as err:
-        print(err)
-        pass
-    finally:
-        return scan.status
+    for event in scan.start():
+        print(event)
 
-
-secrets = {"apollo": "z9tV-4JdDnurSiFrTBItMA", "app_brain": "p24594.0rke2dkkh9ec0rn2mo76d",
-           "google": "AIzaSyA4AFdjloj5QVh1FvtE_Th-ayONGZKs22w", "haveibeenpawned": "42806857f18943debadc4156ea892c44",
-           "mx": "66675eb1-cd13-493f-824e-a77f039cb53e", "rocketreach": "7fc8e4kc711fe050dccc9c83883a53edd280e64",
-           "shodan_dns": "slf8J3ML9slEOmuBahHYhudCgD73rVgb", "signal": "202..nc7AFDvB1kibYsFI0jUuyHwDKcy",
-           "spyse": "80f45c86-7a17-4c1e-8968-a5d885b9a3d5", "view_dns": "483a6a44a649e4f95821147da90a130ea44ad1c1",
-           "wp_scan": "0aKpORSMkvP60g34PWXAWk4Ev7iWma4bLkyDvubu8q8",
-           "censys_key": "bc3e9cbd-a04d-4ce8-afda-7c15e64d56f0", "censys_pass": "MNh6gcijt5jiynXi32LJQ1MDrMzU1Vwg",
-           "xforce_key": "eefc9616-7f87-4290-9965-7ce53e22bbd3", "xforce_pass": "4be25c9c-ffa3-40e3-8a9c-017ba332466a"}
-
-status = bbot_events_from_all_modules(domain="northmill.com", secrets=secrets)
-if status == "FINISHED":
-    d = get_scan_result("bbot_scan_general/output.json", mode="json")
-    t = 1
-
-
-def process_events(domain: str) -> List[dict]:
-    events = get_scan_result("bbot_scan_general/output.json", mode="json")
-    return events
+    if scan.status == "FINISHED":
+        try:
+            events = get_scan_result(f'{scan_name}/output.json', mode="json")
+            return events
+        except Exception as err:
+            pass

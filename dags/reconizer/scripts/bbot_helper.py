@@ -7,8 +7,6 @@ from typing import List
 import pandas as pd
 from bbot.scanner.scanner import Scanner
 
-from reconizer.services.user_defined_exceptions import PartiallyDataError
-
 MAX_SCAN_TIME = 600
 
 
@@ -16,20 +14,15 @@ def add_api_key_to_config(config_str: str) -> list:
     return ["-c", config_str]
 
 
-def run_scan(domain, **kwargs):
-    dict_args = dict(config=dict(output_dir=os.getcwd()), name=f'{kwargs["modules"][0]}_scan')
-    kwargs.update(dict_args)
-    scan = Scanner(domain, **kwargs)
+def run_scan(domain, config, scan_name, bbot_mods):
+    scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_mods,
+                   name=scan_name,
+                   force_start=True)
     for event in scan.start():
         print(event)
 
     if scan.status == "FINISHED":
-        result = get_scan_result(**kwargs)
-        # clean scan folder
-        subprocess.run(["rm", "-r", kwargs["name"]], timeout=30, check=True)
-        return result
-
-    raise PartiallyDataError("test")
+        return True
 
 
 def get_scan_result(filepath: str, mode: str):
