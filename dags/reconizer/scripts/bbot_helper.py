@@ -241,3 +241,15 @@ def run_all_modules(domain: str) -> list:
         return events
     else:
         return []
+
+
+def create_config_from_secrets(secrets: dict):
+    bbot_config = {}
+    for key, value in secrets.items():
+        if "key" in key or "pass" in key:
+            continue
+        bbot_config[key] = dict(api_key=value)
+
+    # because aws secrets can't store nested json properly
+    bbot_config["censys"] = dict(api_id=secrets["censys_key"], api_secret=secrets["censys_pass"])
+    return dict(modules=bbot_config, output_dir=os.getcwd())
