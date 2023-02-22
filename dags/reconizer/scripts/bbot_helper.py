@@ -14,17 +14,6 @@ def add_api_key_to_config(config_str: str) -> list:
     return ["-c", config_str]
 
 
-def run_scan(domain, config, scan_name, bbot_mods):
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_mods,
-                   name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    if scan.status == "FINISHED":
-        return True
-
-
 def get_scan_result(filepath: str, mode: str):
     path = os.path.join(os.getcwd(), filepath)
     if mode == "json":
@@ -94,21 +83,6 @@ def run_bbot_flag(domain: str, flag: str) -> dict:
         return dict(error=f'status code {scan_status} please check your flags', response=None)
 
 
-def run_bbot_vulnerability_modules(domain: str) -> dict:
-    config = dict(output_dir=os.getcwd())
-    vuln_modules = ["badsecrets", "generic_ssrf", "iis_shortnames", "telerik", "url_manipulation"]
-    scan_name = "vuln_scan"
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=vuln_modules, name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    if scan.status == "FINISHED":
-        events = get_scan_result(f'{scan_name}/output.json', mode="json")
-
-    return {}
-
-
 def parse_subdomain_result(events: list):
     result = set()
     for event in events:
@@ -136,12 +110,10 @@ def subdomains_entrypoint_internal(domain):
         domains = parse_subdomain_result(events)
         print("got domains")
         result = {"error": None, "response": domains}
-        print(json.dumps(result))
         clean_scan_folder(scan_name)
         return result
 
     result = {"error": "found no domains", "response": None}
-    print(json.dumps(result))
     return result
 
 
@@ -219,23 +191,6 @@ def read_modules(filepath: str) -> list:
         return list(mods.keys())
 
 
-def run_all_modules(domain: str) -> list:
-    config = dict(output_dir=os.getcwd(), ignore_failed_deps=True)
-    scan_name = "all_modules"
-    bbot_modules = read_modules("bbot_modules.json")
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=bbot_modules, name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    if scan.status == "FINISHED":
-        events = get_scan_result(f'{scan_name}/output.json', mode="json")
-        clean_scan_folder(scan_name)
-        return events
-    else:
-        return []
-
-
 def create_config_from_secrets(secrets: dict):
     bbot_config = {}
     for key, value in secrets.items():
@@ -245,4 +200,26 @@ def create_config_from_secrets(secrets: dict):
 
     # because aws secrets can't store nested json properly
     bbot_config["censys"] = dict(api_id=secrets["censys_key"], api_secret=secrets["censys_pass"])
-    return dict(modules=bbot_config, output_dir=os.getcwd())
+    return dict(modules=bbot_config, output_dir=os.getcwd(), ignore_failed_deps=True)
+
+
+def filtered_events(events: list) -> dict:
+    res = dict()
+    for record in events:
+        typ = record["type"]
+        if res.get(typ, 0) == 0:
+            res[typ] = []
+        res[typ].append(record.get("data", None))
+
+    # remove scan record, no use for that
+    remove_key = res.pop("SCAN", None)
+
+    filtered_final = dict()
+    for key in res.keys():
+        try:
+            filtered_final[key] = list(set(res[key]))
+        except Exception as err:
+            # there is no exception just unhasble type for set
+            filtered_final[key] = list(res[key])
+
+    return filtered_final
