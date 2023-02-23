@@ -74,24 +74,24 @@ def read_bbot_modules_yaml():
         return list(mods["modules"].keys())
 
 
-def bbot_events_iteration(domain: str, secrets: dict, start: int, end: int):
+def bbot_events_iteration(domain: str, secrets: dict, start: int = 0, end: int = 18):
     config = create_config_from_secrets(secrets)
     scan_name = f'bbot_scan_general_{start}_{end}'
     bbot_mods = read_bbot_modules_yaml()
-    mods = bbot_mods[start: min(len(bbot_mods), end)]
+    mods = bbot_mods[start: min(end, len(bbot_mods))]
     scan = scanner.Scanner(domain, config=config, output_modules=["json"], modules=mods,
                            name=scan_name,
                            force_start=True)
     for event in scan.start():
-        print(event)
+        continue
 
     if scan.status == "FINISHED":
         events = get_scan_result(filepath=f'{scan_name}/output.json', mode="json")
 
         # don't write raw data to S3 for now
-        raw_data = []
-        for record in events[1:]:
-            raw_data.append({k: record[k] for k in ('type', 'data', 'resolved_hosts', 'tags', 'module') if k in record})
+        # raw_data = []
+        # for record in events[1:]:
+        #     raw_data.append({k: record[k] for k in ('type', 'data', 'resolved_hosts', 'tags', 'module') if k in record})
 
         # filter and group by event type
         grouped_by = filtered_events(events)
@@ -99,3 +99,18 @@ def bbot_events_iteration(domain: str, secrets: dict, start: int, end: int):
         return grouped_by
     else:
         return {}
+
+#
+# sec = {"apollo": "z9tV-4JdDnurSiFrTBItMA", "app_brain": "p24594.0rke2dkkh9ec0rn2mo76d",
+#        "google": "AIzaSyA4AFdjloj5QVh1FvtE_Th-ayONGZKs22w", "haveibeenpawned": "42806857f18943debadc4156ea892c44",
+#        "mx": "66675eb1-cd13-493f-824e-a77f039cb53e", "rocketreach": "7fc8e4kc711fe050dccc9c83883a53edd280e64",
+#        "shodan_dns": "slf8J3ML9slEOmuBahHYhudCgD73rVgb", "signal": "202..nc7AFDvB1kibYsFI0jUuyHwDKcy",
+#        "spyse": "80f45c86-7a17-4c1e-8968-a5d885b9a3d5", "view_dns": "483a6a44a649e4f95821147da90a130ea44ad1c1",
+#        "wp_scan": "0aKpORSMkvP60g34PWXAWk4Ev7iWma4bLkyDvubu8q8", "censys_key": "bc3e9cbd-a04d-4ce8-afda-7c15e64d56f0",
+#        "censys_pass": "MNh6gcijt5jiynXi32LJQ1MDrMzU1Vwg", "xforce_key": "eefc9616-7f87-4290-9965-7ce53e22bbd3",
+#        "xforce_pass": "4be25c9c-ffa3-40e3-8a9c-017ba332466a"}
+#
+# d = bbot_events_iteration("zap.co.il", sec, 12, 18)
+# for k, v in d.items():
+#     print(k)
+#     print(v)

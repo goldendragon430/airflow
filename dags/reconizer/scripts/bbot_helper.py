@@ -206,10 +206,11 @@ def create_config_from_secrets(secrets: dict):
 def filtered_events(events: list) -> dict:
     res = dict()
     for record in events:
-        typ = record["type"]
-        if res.get(typ, 0) == 0:
-            res[typ] = []
-        res[typ].append(record.get("data", None))
+        tags = record.get("tags", [])
+        for tag in tags:
+            if res.get(tag, 0) == 0:
+                res[tag] = []
+            res[tag].append(record.get("data", None))
 
     # remove scan record, no use for that
     remove_key = res.pop("SCAN", None)
