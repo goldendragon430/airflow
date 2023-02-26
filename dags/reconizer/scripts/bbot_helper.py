@@ -1,11 +1,12 @@
+import itertools
 import json
 import os
 import subprocess
 import time
+from collections import defaultdict
 from typing import List
 
 import pandas as pd
-from bbot.scanner.scanner import Scanner
 
 MAX_SCAN_TIME = 600
 
@@ -54,100 +55,32 @@ def clean_scan_folder(scan_folder: str) -> None:
         pass
 
 
-def run_bbot_module(domain: str, bbot_module: str, api_config: str = None) -> dict:
-    scan_succeeded, output = run_scan_cli(domain=domain, bbot_module=bbot_module, api_config=api_config)
-    if scan_succeeded:
-        report = get_scan_result(filepath=output, mode="json")
-        clean_scan_folder(scan_folder=f'{bbot_module}_scan')
-        return dict(error=None, response=report)
-    else:
-        return dict(error=output, response=None)
-
-
-def flag_cli_run(domain: str, flag: str, output_format: str = "json"):
-    split_dash = flag.replace('-', '_')
-    name = f'{split_dash}_scan'
-    command = f'bbot -t {domain} -f {flag} -n {name} -o .  -y --ignore-failed-deps -om {output_format}'
-    # currently limited scan time to 10 minutes
-    result = subprocess.run(command.split(), capture_output=True, timeout=MAX_SCAN_TIME, text=True)
-    return result.stdout
-
-
-def run_bbot_flag(domain: str, flag: str) -> dict:
-    scan_status = flag_cli_run(domain=domain, flag=flag, output_format="json")
-    if os.path.isdir(f'{flag}_scan'):
-        report = get_scan_result(filepath=f'{flag}_scan/output.csv', mode="json")
-        # clean_scan_folder(scan_folder=f'{flag}_scan')
-        return dict(error=None, response=report)
-    else:
-        return dict(error=f'status code {scan_status} please check your flags', response=None)
-
-
-def parse_subdomain_result(events: list):
-    result = set()
+def parse_subdomain_result(events: list, domain: str):
+    domains = defaultdict(list)
+    subdomains = defaultdict(list)
     for event in events:
-        if "subdomain" in event["tags"]:
-            result.add(event["data"])
+        if event.get("type", "") == "DNS_NAME":
+            if "subdomain" in event["tags"] and domain in event["data"]:
+                subdomains[event["data"]].append(event["resolved_hosts"])
+            else:
+                domains[event["data"]].append(event["resolved_hosts"])
 
-    return list(result)
+    for k, v in subdomains.items():
+        try:
+            merged = list(itertools.chain.from_iterable(v))
+            subdomains[k] = list(set(merged))
+        except Exception as err:
+            subdomains[k] = list(itertools.chain.from_iterable(v))
 
-
-def subdomains_entrypoint_internal(domain):
-    config = dict(output_dir=os.getcwd())
-    output_modules = "certspotter otx leakix ipneighbor hackertarget dnsdumpster dnscommonsrv crt crobat anubisdb " \
-                     "dnszonetransfer wayback azure_tenant urlscan threatminer sublist3r riddler rapiddns"
-    mods = output_modules.split()
-    scan_name = "subdomains_scan"
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=mods, name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    print("scan finished cool")
-    if scan.status == "FINISHED":
-        events = get_scan_result(f'{scan_name}/output.json', mode="json")
-        print("got events correct")
-        domains = parse_subdomain_result(events)
-        print("got domains")
-        result = {"error": None, "response": domains}
-        clean_scan_folder(scan_name)
-        return result
-
-    result = {"error": "found no domains", "response": None}
-    return result
+    return subdomains, domains
 
 
-def parse_emails_result(events: list) -> list:
+def parse_emails_result(events: list):
     emails = set()
     for event in events:
         if event.get("type", "") == "EMAIL_ADDRESS":
             emails.add(event["data"])
     return list(emails)
-
-
-def emails_entrypoint_internal(domain: str) -> dict:
-    email_modules = "speculate emailformat pgp skymem PTR".split()
-    config = dict(output_dir=os.getcwd())
-    scan_name = "emails_scan"
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=email_modules, name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    print("scan finished cool")
-    if scan.status == "FINISHED":
-        events = get_scan_result(f'{scan_name}/output.json', mode="json")
-        print("got events correct")
-        emails = parse_emails_result(events)
-        print("got emails")
-        result = {"error": None, "response": emails}
-        print(json.dumps(result))
-        clean_scan_folder(scan_name)
-        return result
-
-    result = {"error": "found no emails", "response": []}
-    print(json.dumps(result))
-    return result
 
 
 def parse_cloud_buckets(events: list) -> list:
@@ -158,37 +91,6 @@ def parse_cloud_buckets(events: list) -> list:
             buckets_urls.append(filtered)
 
     return buckets_urls
-
-
-def cloud_buckets_entrypoint_internal(domain: str) -> dict:
-    config = dict(output_dir=os.getcwd())
-    cloud_bucket_module = "bucket_aws bucket_azure bucket_digitalocean bucket_gcp".split()
-    scan_name = "buckets_scan"
-    scan = Scanner(domain, config=config, output_modules=["json"], modules=cloud_bucket_module, name=scan_name,
-                   force_start=True)
-    for event in scan.start():
-        print(event)
-
-    print("scan finished")
-    if scan.status == "FINISHED":
-        events = get_scan_result(f'{scan_name}/output.json', mode="json")
-        print("got events correct")
-        buckets = parse_cloud_buckets(events)
-        print("got buckets urls")
-        result = {"error": None, "response": buckets}
-        print(json.dumps(result))
-        clean_scan_folder(scan_name)
-        return result
-
-    result = {"error": "found no buckets", "response": []}
-    print(json.dumps(result))
-    return result
-
-
-def read_modules(filepath: str) -> list:
-    with open(filepath, mode="r") as file:
-        mods = json.loads(file.read())
-        return list(mods.keys())
 
 
 def create_config_from_secrets(secrets: dict):
@@ -203,24 +105,44 @@ def create_config_from_secrets(secrets: dict):
     return dict(modules=bbot_config, output_dir=os.getcwd(), ignore_failed_deps=True)
 
 
-def filtered_events(events: list) -> dict:
-    res = dict()
-    for record in events:
-        tags = record.get("tags", [])
-        for tag in tags:
-            if res.get(tag, 0) == 0:
-                res[tag] = []
-            res[tag].append(record.get("data", None))
+def filtered_events(events: list, domain: str) -> dict:
+    subdomains, domains = parse_subdomain_result(events, domain)
+    findings = parse_findings(events)
+    emails = parse_emails_result(events)
+    open_ports = parse_open_ports(events)
+    buckets = parse_cloud_buckets(events)
 
-    # remove scan record, no use for that
-    remove_key = res.pop("SCAN", None)
+    ports = list(open_ports.keys())
+    final = dict()
 
-    filtered_final = dict()
-    for key in res.keys():
-        try:
-            filtered_final[key] = list(set(res[key]))
-        except Exception as err:
-            # there is no exception just unhasble type for set
-            filtered_final[key] = list(res[key])
+    for domain in subdomains.keys():
+        is_port_open = set()
+        for port in ports:
+            if port in subdomains[domain]:
+                for p in open_ports[port]:
+                    is_port_open.add(p)
 
-    return filtered_final
+        final[domain] = dict(host=subdomains[domain], open_ports=list(is_port_open))
+
+    return dict(domains=domains, subdomains=final, findings=findings, emails=emails, buckets=buckets)
+
+
+def parse_open_ports(events: list):
+    result = defaultdict(list)
+    for event in events:
+        if event.get("type", "") in ["OPEN_TCP_PORT", "PROTOCOL"]:
+            ip, port = event["data"]["host"].split(":") if type(event["data"]) == dict else event["data"].split(":")
+            value = [int(port)]
+            result[ip].append(value)
+
+    for k, v in result.items():
+        result[k] = list(set(itertools.chain.from_iterable(v)))
+    return result
+
+
+def parse_findings(events: list):
+    findings = list()
+    for event in events:
+        if event.get("type", "") == "FINDING":
+            findings.append(event["data"])
+    return findings
