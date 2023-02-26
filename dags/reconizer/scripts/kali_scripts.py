@@ -2,6 +2,7 @@
     This file contains all modules that would run on Kali EC2 machine in paris
 """
 import json
+import socket
 
 from reconizer.scripts.kali_helpers import wapiti_extract_vulnerabilites_and_anomalies, \
     wpscan_find_vulnerabilities_from_scan, xsser_xss_xst_by_passer
@@ -134,3 +135,21 @@ def nmap_entrypoint(domain: str) -> dict:
     else:
         error = [std_err, vulnerability_err]
         return dict(error=error, response=None)
+
+
+def nmap_port_check(domain: str) -> list:
+    nmap_res = []
+    try:
+        ip = socket.gethostbyname(domain)
+        command = f'nmap --max-rtt-timeout 60ms -F {ip} -Pn'
+        std_out, std_err = kali_machine_conn.run_command(command)
+        if not std_err:
+            lines = std_out.split('\n')[5: -2]
+            for row in lines:
+                if row != "":
+                    port, state, service = row.split()
+                    nmap_res.append(dict(port=port, state=state, service=service))
+    except Exception as err:
+        pass
+    finally:
+        return nmap_res
