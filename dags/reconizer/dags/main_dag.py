@@ -6,17 +6,18 @@ from airflow.models import Variable
 from reconizer.common.raw_data_operator import RawDataOperator
 from reconizer.scripts.api_scripts import apollo_entrypoint, viewdns_subdomains, \
     xforce_entrypoint
-from reconizer.scripts.bbot_scripts import bbot_events_iteration
+from reconizer.scripts.bbot_scripts import bbot_events_iteration, bbot_raw_data_task
 from reconizer.scripts.kali_scripts import wafw00f_entrypoint, wapiti_entrypoint
-
-NUM_OF_MODULES_PER_SCAN = 6
-TOTAL_NUM_OF_BBOT_MODULES = 60
 
 
 @dag(dag_id="main_dag", schedule_interval=None, start_date=datetime(2023, 1, 12))
 def main_dag(**kwargs):
     # this will run all bbot modules and group by their events and write to s3
-    RawDataOperator(task_id=f'bbot_general', fn=bbot_events_iteration,
+    RawDataOperator(task_id=f'bbot_filtered_data', fn=bbot_events_iteration,
+                    op_args=["", Variable.get("secrets", deserialize_json=True)])
+
+    # raw data output
+    RawDataOperator(task_id=f'bbot_raw_data', fn=bbot_raw_data_task,
                     op_args=["", Variable.get("secrets", deserialize_json=True)])
 
     # subdomains
