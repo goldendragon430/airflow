@@ -8,7 +8,7 @@ from typing import Dict, List
 
 import pandas as pd
 
-from scripts.api_helpers import shodan_query_location
+from reconizer.scripts.api_helpers import shodan_query_location
 
 MAX_SCAN_TIME = 600
 
