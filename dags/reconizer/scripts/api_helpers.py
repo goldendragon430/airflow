@@ -5,6 +5,7 @@
         1.  https://api.xforce.ibmcloud.com/doc/
         2. XXXXXX- XXXX
 """
+import socket
 
 import requests
 
@@ -40,3 +41,15 @@ def apollo_pagination(domain: str, api_key: str) -> list:
         for person in page["people"]:
             people.append({k: v for k, v in person.items() if v is not None})
         yield people
+
+
+def shodan_query_location(shodan_object, domain: str):
+    try:
+        ip = socket.gethostbyname(domain)
+        data = shodan_object.host(ip)
+        res = {}
+        for column in ["country_name", "city", "latitude", "longitude"]:
+            res[column] = data[column]
+        return res
+    except Exception as err:
+        return {}

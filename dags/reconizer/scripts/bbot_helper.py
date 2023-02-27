@@ -4,9 +4,11 @@ import os
 import subprocess
 import time
 from collections import defaultdict
-from typing import List
+from typing import Dict, List
 
 import pandas as pd
+
+from scripts.api_helpers import shodan_query_location
 
 MAX_SCAN_TIME = 600
 
@@ -55,6 +57,18 @@ def clean_scan_folder(scan_folder: str) -> None:
         pass
 
 
+def merge_list_of_lists(dict_of_arr: Dict[str, List[list]]):
+    res = defaultdict(list)
+    for k, v in dict_of_arr.items():
+        try:
+            merged = list(itertools.chain.from_iterable(v))
+            res[k] = list(set(merged))
+        except Exception as err:
+            res[k] = list(itertools.chain.from_iterable(v))
+
+    return res
+
+
 def parse_subdomain_result(events: list, domain: str):
     domains = defaultdict(list)
     subdomains = defaultdict(list)
@@ -65,14 +79,10 @@ def parse_subdomain_result(events: list, domain: str):
             else:
                 domains[event["data"]].append(event["resolved_hosts"])
 
-    for k, v in subdomains.items():
-        try:
-            merged = list(itertools.chain.from_iterable(v))
-            subdomains[k] = list(set(merged))
-        except Exception as err:
-            subdomains[k] = list(itertools.chain.from_iterable(v))
+    final_subdomains = merge_list_of_lists(subdomains)
+    final_domains = merge_list_of_lists(domains)
 
-    return subdomains, domains
+    return final_subdomains, final_domains
 
 
 def parse_emails_result(events: list):
@@ -105,7 +115,7 @@ def create_config_from_secrets(secrets: dict):
     return dict(modules=bbot_config, output_dir=os.getcwd(), ignore_failed_deps=True)
 
 
-def filtered_events(events: list, domain: str) -> dict:
+def filtered_events(events: list, domain: str, shodan_object) -> dict:
     subdomains, domains = parse_subdomain_result(events, domain)
     findings = parse_findings(events)
     emails = parse_emails_result(events)
@@ -122,7 +132,9 @@ def filtered_events(events: list, domain: str) -> dict:
                 for p in open_ports[port]:
                     is_port_open.add(p)
 
-        final[domain] = dict(host=subdomains[domain], open_ports=list(is_port_open))
+        location = shodan_query_location(shodan_object, domain)
+
+        final[domain] = dict(host=subdomains[domain], open_ports=list(is_port_open), location=location)
 
     return dict(domains=domains, subdomains=final, findings=findings, emails=emails, buckets=buckets)
 
