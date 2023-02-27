@@ -3,3 +3,4 @@
 paramiko==3.0.0
 bbot==1.0.4.922
 badsecrets==0.1.220
+shodan==1.28.0
