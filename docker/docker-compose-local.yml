@@ -40,4 +40,4 @@ services:
       retries: 3
     env_file:
       # you should put your local env file here
-      - ./config/.env.ranlocalrunner
+      - ./config/.env.localrunner

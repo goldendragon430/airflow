@@ -17,16 +17,15 @@ def bbot_raw_data_task(domain: str, secrets: dict):
     scan_name = "bbot_raw_data"
     sub_mods = ["censys", "wayback", "urlscan", "threatminer", "sublist3r", "pgp",
                 "bucket_aws", "bucket_azure", "bucket_gcp"]
-    scan = scanner.Scanner(domain, config=config, output_modules=["json"], modules=sub_mods,
-                           name=scan_name,
-                           force_start=True)
+    scan = scanner.Scanner(domain, config=config, modules=sub_mods)
+    res = []
     for event in scan.start():
-        continue
+        res.append(event.json())
 
     if scan.status == "FINISHED":
         # this is all the events in raw data
-        events = get_scan_result(filepath=f'{scan_name}/output.json', mode="json")
-        return events
+        # events = get_scan_result(filepath=f'{scan_name}/output.json', mode="json")
+        return res
     else:
         return {}
 
