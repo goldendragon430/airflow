@@ -49,9 +49,6 @@ class RawDataOperator(BaseOperator):
         wr.s3.to_parquet(
             df=df,
             path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
-            dataset=True,
-            database="raw_data",
-            table="my_table",
             boto3_session=my_session
         )
 
