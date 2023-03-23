@@ -1,6 +1,8 @@
 --constraint "/usr/local/airflow/dags/constraints_2.4.3-amazon-6.0.0.txt"
 
 paramiko==3.0.0
-bbot==1.0.4.922
+bbot==1.0.5.1355
 badsecrets==0.1.220
 shodan==1.28.0
+awswrangler==2.20.0
+pandas==1.5.1

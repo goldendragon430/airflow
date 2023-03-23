@@ -5,6 +5,9 @@ from airflow.models import Variable
 from airflow.models.baseoperator import BaseOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.utils.decorators import apply_defaults
+import awswrangler as wr
+import pandas as pd
+import boto3
 
 
 def raw_data_bucket():
@@ -39,6 +42,18 @@ class RawDataOperator(BaseOperator):
         s3_hook = S3Hook()
         s3_hook.load_string(bucket_name=bucket,
                             key=data_path, string_data=result_as_string)
+
+        df = pd.DataFrame({"id": [1, 2], "value": ["foo", "boo"]})
+        my_session = boto3.Session(region_name="eu-central-1")
+
+        # wr.s3.to_parquet(
+        #     df=df,
+        #     path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
+        #     dataset=True,
+        #     database="raw_data",
+        #     table="my_table",
+        #     boto3_session=my_session
+        # )
 
         return result
 
