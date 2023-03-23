@@ -46,14 +46,14 @@ class RawDataOperator(BaseOperator):
         df = pd.DataFrame({"id": [1, 2], "value": ["foo", "boo"]})
         my_session = boto3.Session(region_name="eu-central-1")
 
-        # wr.s3.to_parquet(
-        #     df=df,
-        #     path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
-        #     dataset=True,
-        #     database="raw_data",
-        #     table="my_table",
-        #     boto3_session=my_session
-        # )
+        wr.s3.to_parquet(
+            df=df,
+            path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
+            dataset=True,
+            database="raw_data",
+            table="my_table",
+            boto3_session=my_session
+        )
 
         return result
 
