@@ -36,23 +36,23 @@ class RawDataOperator(BaseOperator):
             context['dag_run'].run_id, context['dag_run'].dag_id, context['task'].task_id)
         # This line override the first arg and set the domain from configuration
         self.op_args[0] = context["dag_run"].conf["kwargs"]["domain"]
-        result = self.execute_callable()
+        result = self.execute_callable(context)
         result_as_string = json.dumps(result)
 
         s3_hook = S3Hook()
         s3_hook.load_string(bucket_name=bucket,
                             key=data_path, string_data=result_as_string)
 
-        df = pd.DataFrame({"id": [1, 2], "value": ["foo", "boo"]})
-        my_session = boto3.Session(region_name="eu-central-1")
+        # df = pd.DataFrame({"id": [1, 2], "value": ["foo", "boo"]})
+        # my_session = boto3.Session(region_name="eu-central-1")
 
-        wr.s3.to_parquet(
-            df=df,
-            path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
-            boto3_session=my_session
-        )
+        # wr.s3.to_parquet(
+        #     df=df,
+        #     path=f"s3://r-mor-airflow-raw-data-tomer/{context['dag_run'].run_id}/",
+        #     boto3_session=my_session
+        # )
 
         return result
 
-    def execute_callable(self) -> Any:
+    def execute_callable(self, context) -> Any:
         return self.callable(*self.op_args, **self.op_kwargs)
