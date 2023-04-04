@@ -16,7 +16,7 @@ def bbot_raw_data_task(domain: str, secrets: dict):
     shodan_object = Shodan(secrets.get("shodan_dns"))
     scan_name = "bbot_raw_data"
     sub_mods = ["censys", "wayback", "urlscan", "threatminer", "sublist3r", "pgp",
-                "bucket_aws", "bucket_azure", "bucket_gcp"]
+                "bucket_aws", "bucket_azure", "bucket_gcp", "nuclei"]
     scan = scanner.Scanner(domain, config=config, modules=sub_mods)
     res = []
     for event in scan.start():
